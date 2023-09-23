@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "368867686549",
+    "project_id": "entrega3-distribuidos",
+    "storage_bucket": "entrega3-distribuidos.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368867686549:android:c13101e81d4abfb23c839c",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.Entrega3Distribuidos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZhPJ8S8bRu_1f2bf16VpIjpQH3VkmPeQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
