@@ -5,6 +5,7 @@ using Firebase;
 using Firebase.Auth;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Firebase.Extensions;
 
 public class AuthManager : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private TMP_InputField emailLoginField;
     [SerializeField] private TMP_InputField passwordLoginField;
     [SerializeField] private TMP_Text warningLoginText;
+    [SerializeField] TMP_Text confirmationPasswordText;
 
     //Register variables
     [Header("Register")]
@@ -27,6 +29,11 @@ public class AuthManager : MonoBehaviour
     [SerializeField] private TMP_InputField passwordRegisterField;
     [SerializeField] private TMP_InputField passwordRegisterVerifyField;
     [SerializeField] private TMP_Text warningRegisterText;
+
+    [Header("Forgot Password")]
+    [SerializeField] TMP_InputField forgotPasswordEmail;
+    [SerializeField] private TMP_Text warningForgetPasswordText;
+
 
     private void Awake()
     {
@@ -54,9 +61,48 @@ public class AuthManager : MonoBehaviour
         StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, usernameRegisterField.text));
     }
 
+    public void ForgotPasswordButton()
+    {
+        if (string.IsNullOrEmpty(forgotPasswordEmail.text))
+        {
+            warningForgetPasswordText.text = $"No has colocado correo electronico";
+            return;
+        }
+
+        FogotPassword(forgotPasswordEmail.text);
+    }
+
+    void FogotPassword(string forgotPasswordEmail)
+    {
+        auth.SendPasswordResetEmailAsync(forgotPasswordEmail).ContinueWithOnMainThread(RestoreTask => {
+
+            if (RestoreTask.IsCanceled)
+            {
+                Debug.LogError($"El cambio de contraseña ha sido cancelado");
+            }
+
+            else if(RestoreTask.IsFaulted)
+            {
+                foreach(FirebaseException exception in RestoreTask.Exception.Flatten().InnerExceptions) 
+                { 
+                    Firebase.FirebaseException firebaseEx = exception as Firebase.FirebaseException;
+                    if(firebaseEx != null)
+                    {
+                        var errorCode = (AuthError)firebaseEx.ErrorCode;
+                    }
+
+                }
+            }
+
+            confirmationPasswordText.text = "El correo para reestablecer la contraseña ha sido enviado";
+            UIManager.instance.LoginScreen();
+        });
+    }
+
     IEnumerator Login(string email, string password)
     {
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(email, password);
+        confirmationPasswordText.text = "";
         yield return new WaitUntil(predicate: () => LoginTask.IsCompleted);
         
         if(LoginTask.Exception != null)
@@ -88,6 +134,7 @@ public class AuthManager : MonoBehaviour
         }
         else
         {
+            confirmationPasswordText.text = "";
             user = LoginTask.Result.User;
             Debug.LogFormat("Usuario iniciado excitosamente: {0} ({1})", user.DisplayName, user.Email);
             warningLoginText.text = "";

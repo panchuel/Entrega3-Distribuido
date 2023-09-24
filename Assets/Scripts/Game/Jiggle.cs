@@ -5,7 +5,6 @@ using UnityEngine.Events;
 
 public class Jiggle : MonoBehaviour
 {
-
     Rigidbody2D rb;
     [SerializeField] float jumpForce;
     public UnityEvent scoreIncreasser;
@@ -13,7 +12,7 @@ public class Jiggle : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();   
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -36,4 +35,5 @@ public class Jiggle : MonoBehaviour
     {
         rb.AddForce(new Vector2(Random.Range(30f,100f), jumpForce), ForceMode2D.Force);
     }
+
 }
