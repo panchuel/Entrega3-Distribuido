@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1687558610627597927}
   - component: {fileID: 127182683053810967}
   - component: {fileID: 4137503675409025999}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Username
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -360, y: 0}
-  m_SizeDelta: {x: 274.0511, y: 100}
+  m_AnchoredPosition: {x: -271.72, y: 0.000051975}
+  m_SizeDelta: {x: 404.1437, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &127182683053810967
 CanvasRenderer:
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 50
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -145,7 +145,7 @@ GameObject:
   - component: {fileID: 6015783403987209265}
   - component: {fileID: 6330101729883478062}
   - component: {fileID: 1756038262103084224}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Score
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,8 +168,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 84.44678, y: 0}
-  m_SizeDelta: {x: 368.8936, y: 92.2234}
+  m_AnchoredPosition: {x: 324, y: 0.000042439}
+  m_SizeDelta: {x: 299.57, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6330101729883478062
 CanvasRenderer:
@@ -233,7 +233,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 50
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -280,7 +280,8 @@ GameObject:
   - component: {fileID: 4508605069825911996}
   - component: {fileID: 1638991457434915766}
   - component: {fileID: 5344847225869101454}
-  m_Layer: 5
+  - component: {fileID: 1769917301195586567}
+  m_Layer: 0
   m_Name: ScoreElement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -329,7 +330,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.15686275}
+  m_Color: {r: 0.6920319, g: 0.9433962, b: 0.37824848, a: 0.15686275}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -360,3 +361,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   usernameText: {fileID: 4137503675409025999}
   scoreText: {fileID: 1756038262103084224}
+--- !u!114 &1769917301195586567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5692659669566570706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 60
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1

@@ -6,6 +6,7 @@ using Firebase.Auth;
 using Firebase.Database;
 using TMPro;
 using Firebase.Extensions;
+using System.Linq;
 
 public class AuthManager : MonoBehaviour
 {
@@ -42,7 +43,7 @@ public class AuthManager : MonoBehaviour
 
     [Header("Game")]
     [SerializeField] GameObject ball;
-    [SerializeField] GameObject gameUI, menuUI;
+    [SerializeField] GameObject gameUI, menuUI, scoreboardUI;
     [SerializeField] TMP_Text highScore;
 
 
@@ -84,6 +85,11 @@ public class AuthManager : MonoBehaviour
         }
 
         FogotPassword(forgotPasswordEmail.text);
+    }
+
+    public void ScoreBoardButton()
+    {
+        StartCoroutine(LoadScoreBoard());
     }
 
     void FogotPassword(string forgotPasswordEmail)
@@ -157,6 +163,10 @@ public class AuthManager : MonoBehaviour
             Debug.LogFormat("Usuario iniciado excitosamente: {0} ({1})", user.DisplayName, user.Email);
             warningLoginText.text = "";
 
+            StartCoroutine(LoadData());
+
+            yield return new WaitForSeconds(1);
+
             usernameField.text = user.DisplayName;
 
             UIManager.instance.RemoveAuth();
@@ -221,6 +231,8 @@ public class AuthManager : MonoBehaviour
                     }
                     else
                     {
+                        var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
                         UIManager.instance.LoginScreen();
                         warningRegisterText.text = "";
                     }
@@ -236,5 +248,52 @@ public class AuthManager : MonoBehaviour
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
         if(DBTask.Exception != null) Debug.LogWarning($"Fallo al registrar la tarea {DBTask.Exception}");
+    }
+
+    IEnumerator LoadData()
+    {
+        var DBTask = dbReference.Child("users").Child(user.UserId).GetValueAsync();
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Result.Value == null)
+        {
+            highScore.text = "0";
+        }
+        else
+        {
+            DataSnapshot snapshot = DBTask.Result;
+
+            highScore.text = snapshot.Child("score").Value.ToString();
+        }
+    }
+
+    IEnumerator LoadScoreBoard()
+    {
+        var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
+        else
+        {
+            DataSnapshot snapshot = DBTask.Result;
+
+            //Destruyo todos los elementos de la tabla
+            foreach(Transform child in scoreboardContent.transform) Destroy(child.gameObject);
+
+            foreach(DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
+            {
+                string username = childSnapshot.Child("username").Value.ToString();
+                int score = int.Parse(childSnapshot.Child("score").Value.ToString());
+
+                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
+                scoreboardElement.GetComponent<ScoreElement>().NewScoreElement(username, score);
+            }
+        }
+
+        scoreboardUI.SetActive(true);
+        gameUI.SetActive(false);
+        menuUI.SetActive(false);
+        ball.SetActive(false);
     }
 }
