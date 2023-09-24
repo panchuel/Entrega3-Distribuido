@@ -810,6 +810,7 @@ MonoBehaviour:
   menuUI: {fileID: 950585491}
   scoreboardUI: {fileID: 171923396}
   highScore: {fileID: 1749252539}
+  highScoreIntern: {fileID: 1903448407}
 --- !u!1 &194083639
 GameObject:
   m_ObjectHideFlags: 0
