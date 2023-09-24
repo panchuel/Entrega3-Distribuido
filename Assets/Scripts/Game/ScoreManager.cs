@@ -10,4 +10,9 @@ public class ScoreManager : MonoBehaviour
     {
         score += 1;
     }
+
+    public void DeleteScore()
+    {
+        score = 0;
+    }
 }

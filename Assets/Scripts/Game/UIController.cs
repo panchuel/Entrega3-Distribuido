@@ -8,9 +8,8 @@ public class UIController : MonoBehaviour
 {
     [Header("Game UI")]
     [SerializeField] GameObject ball;
-    [SerializeField] TextMeshProUGUI scoreText;
+    public TextMeshProUGUI scoreText;
     [SerializeField] ScoreManager scoreManager;
-    public static UIController instance;
 
     [Header("Menu")]
     [SerializeField] GameObject menuUI;

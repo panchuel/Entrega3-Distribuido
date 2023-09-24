@@ -796,7 +796,10 @@ MonoBehaviour:
   usernameField: {fileID: 1438740517}
   scoreElement: {fileID: 5692659669566570706, guid: d0c7c4bf27537f4499302d2d5f735d42, type: 3}
   scoreboardContent: {fileID: 1600836716}
-  gameUI: {fileID: 81764940}
+  ball: {fileID: 861067232}
+  gameUI: {fileID: 1674108949}
+  menuUI: {fileID: 81764940}
+  highScore: {fileID: 1749252539}
 --- !u!1 &194083639
 GameObject:
   m_ObjectHideFlags: 0
@@ -3195,6 +3198,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 665136636}
   m_CullTransparentMesh: 1
+--- !u!1 &669275931
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 669275932}
+  m_Layer: 0
+  m_Name: ---References---
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &669275932
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669275931}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1704071528}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &674211455
 GameObject:
   m_ObjectHideFlags: 0
@@ -8610,6 +8645,37 @@ Transform:
   - {fileID: 986009601}
   m_Father: {fileID: 6130824}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1704071527
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1704071528}
+  m_Layer: 0
+  m_Name: BallInitialPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1704071528
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1704071527}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 669275932}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1716089817
 GameObject:
   m_ObjectHideFlags: 0
@@ -9818,6 +9884,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1903448406}
   - component: {fileID: 1903448405}
+  - component: {fileID: 1903448407}
   m_Layer: 0
   m_Name: DeathZone
   m_TagString: Untagged
@@ -9885,6 +9952,40 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1903448407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903448404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32003d9280b63bd45b5ef9745f126a2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  highScore: 0
+  scoreManager: {fileID: 682429915}
+  ballInitialPosition: {fileID: 1704071528}
+  menuUI: {fileID: 81764940}
+  highScoreText: {fileID: 1749252539}
+  scoreText: {fileID: 6130823}
+  authManager: {fileID: 189783064}
+  updateAuth:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 189783064}
+        m_TargetAssemblyTypeName: AuthManager, Assembly-CSharp
+        m_MethodName: UpdateScore
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1937740220
 GameObject:
   m_ObjectHideFlags: 0
@@ -11068,6 +11169,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 519420032}
+  - {fileID: 669275932}
   - {fileID: 2115855467}
   - {fileID: 1889438200}
   - {fileID: 6130824}

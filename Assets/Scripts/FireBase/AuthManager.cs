@@ -5,7 +5,6 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Database;
 using TMPro;
-using UnityEngine.SceneManagement;
 using Firebase.Extensions;
 
 public class AuthManager : MonoBehaviour
@@ -42,11 +41,15 @@ public class AuthManager : MonoBehaviour
     [SerializeField] Transform scoreboardContent;
 
     [Header("Game")]
-    [SerializeField] GameObject gameUI;
+    [SerializeField] GameObject ball;
+    [SerializeField] GameObject gameUI, menuUI;
+    [SerializeField] TMP_Text highScore;
 
 
     private void Awake()
     {
+
+
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
             dependencyStatus = task.Result;
@@ -110,9 +113,9 @@ public class AuthManager : MonoBehaviour
         });
     }
 
-    public void UpdateData()
+    public void UpdateScore()
     {
-
+        StartCoroutine(Score(highScore.text));
     }
     IEnumerator Login(string email, string password)
     {
@@ -158,6 +161,8 @@ public class AuthManager : MonoBehaviour
 
             UIManager.instance.RemoveAuth();
             gameUI.SetActive(true);
+            menuUI.SetActive(true);
+            ball.SetActive(true);
         }
     }
 
@@ -220,9 +225,16 @@ public class AuthManager : MonoBehaviour
                         warningRegisterText.text = "";
                     }
                 }
-                /*Debug.LogFormat("Usuario iniciado excitosamente: {0} ({1})", user.DisplayName, user.Email);
-                warningLoginText.text = "";*/
             }
         }
+    }
+
+    IEnumerator Score(string score)
+    {
+        var DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(score);
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Exception != null) Debug.LogWarning($"Fallo al registrar la tarea {DBTask.Exception}");
     }
 }
