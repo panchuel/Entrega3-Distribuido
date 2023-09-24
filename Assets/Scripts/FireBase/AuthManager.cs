@@ -45,6 +45,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] GameObject ball;
     [SerializeField] GameObject gameUI, menuUI, scoreboardUI;
     [SerializeField] TMP_Text highScore;
+    [SerializeField] LoseManager highScoreIntern;
 
 
     private void Awake()
@@ -264,6 +265,7 @@ public class AuthManager : MonoBehaviour
             DataSnapshot snapshot = DBTask.Result;
 
             highScore.text = snapshot.Child("score").Value.ToString();
+            highScoreIntern.highScore = int.Parse(highScore.text);
         }
     }
 

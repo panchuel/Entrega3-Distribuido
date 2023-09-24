@@ -25,6 +25,7 @@ public class LoseManager : MonoBehaviour
             {
                 highScore = score;
                 highScoreText.text = highScore.ToString();
+                updateAuth.Invoke();
             }
             score = 0;
             ReloadScene();
@@ -38,7 +39,6 @@ public class LoseManager : MonoBehaviour
         Jiggle.Instance.GetComponent<Transform>().position = ballInitialPosition.position;
         Jiggle.Instance.rb.gravityScale = 0f;
         Jiggle.Instance.rb.velocity = Vector2.zero;
-        updateAuth.Invoke();
         menuUI.SetActive(true);
     }
 

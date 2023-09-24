@@ -10,6 +10,7 @@ public class UIController : MonoBehaviour
     [SerializeField] GameObject ball;
     public TextMeshProUGUI scoreText;
     [SerializeField] ScoreManager scoreManager;
+    [SerializeField] GameObject gameUI;
 
     [Header("Menu")]
     [SerializeField] GameObject menuUI;
@@ -29,7 +30,8 @@ public class UIController : MonoBehaviour
 
     public void PlayButton()
     {
-        menuUI.SetActive(false);
+        gameUI.SetActive(true);
+        menuUI.SetActive(false);       
         Invoke("ActiveGravity", 0.5f);
     }
 
