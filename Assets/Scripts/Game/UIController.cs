@@ -7,15 +7,18 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
     [Header("Game UI")]
+    [SerializeField] GameObject ball;
     [SerializeField] TextMeshProUGUI scoreText;
     [SerializeField] ScoreManager scoreManager;
 
     [Header("Menu")]
     [SerializeField] GameObject menuUI;
 
+    [Header("Scoreboard")]
+    [SerializeField] GameObject scoreboardUI;
+
     private void Start()
     {
-        Time.timeScale = 0;
         scoreManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<ScoreManager>();
     }
 
@@ -27,7 +30,26 @@ public class UIController : MonoBehaviour
     public void PlayButton()
     {
         menuUI.SetActive(false);
-        Time.timeScale = 1;
+        Invoke("ActiveGravity", 0.5f);
+    }
+
+    public void ShowScoreboard()
+    {
+        scoreboardUI.SetActive(true);
+        menuUI.SetActive(false);
+        ball.SetActive(false);
+    }
+
+    public void BackToMenu()
+    {
+        menuUI.SetActive(true);
+        ball.SetActive(true);
+        scoreboardUI.SetActive(false);
+    }
+
+    void ActiveGravity()
+    {
+        Jiggle.Instance.rb.gravityScale = 1.0f;
     }
 
 
