@@ -9856,7 +9856,7 @@ MonoBehaviour:
   highScore: 0
   scoreManager: {fileID: 682429915}
   ballInitialPosition: {fileID: 1704071528}
-  menuUI: {fileID: 0}
+  menuUI: {fileID: 950585491}
   highScoreText: {fileID: 1749252539}
   scoreText: {fileID: 6130823}
   authManager: {fileID: 189783064}
