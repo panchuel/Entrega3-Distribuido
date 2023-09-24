@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Firebase;
 using Firebase.Auth;
+using Firebase.Database;
 using TMPro;
 using UnityEngine.SceneManagement;
 using Firebase.Extensions;
@@ -14,6 +15,7 @@ public class AuthManager : MonoBehaviour
     public DependencyStatus dependencyStatus;
     public FirebaseAuth auth;
     public FirebaseUser user;
+    public DatabaseReference dbReference;
 
     //Login variables
     [Header("Login")]
@@ -34,6 +36,14 @@ public class AuthManager : MonoBehaviour
     [SerializeField] TMP_InputField forgotPasswordEmail;
     [SerializeField] private TMP_Text warningForgetPasswordText;
 
+    [Header("UserData")]
+    [SerializeField] TMP_Text usernameField;
+    [SerializeField] GameObject scoreElement;
+    [SerializeField] Transform scoreboardContent;
+
+    [Header("Game")]
+    [SerializeField] GameObject gameUI;
+
 
     private void Awake()
     {
@@ -49,6 +59,7 @@ public class AuthManager : MonoBehaviour
     {
         print($"Configurando autorización de Firebase");
         auth = FirebaseAuth.DefaultInstance;
+        dbReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
     public void LoginButton()
@@ -99,6 +110,10 @@ public class AuthManager : MonoBehaviour
         });
     }
 
+    public void UpdateData()
+    {
+
+    }
     IEnumerator Login(string email, string password)
     {
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(email, password);
@@ -138,7 +153,11 @@ public class AuthManager : MonoBehaviour
             user = LoginTask.Result.User;
             Debug.LogFormat("Usuario iniciado excitosamente: {0} ({1})", user.DisplayName, user.Email);
             warningLoginText.text = "";
-            SceneManager.LoadScene(1);
+
+            usernameField.text = user.DisplayName;
+
+            UIManager.instance.RemoveAuth();
+            gameUI.SetActive(true);
         }
     }
 

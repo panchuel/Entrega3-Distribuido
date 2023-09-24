@@ -1271,6 +1271,9 @@ MonoBehaviour:
   warningRegisterText: {fileID: 661750585}
   forgotPasswordEmail: {fileID: 71456524}
   warningForgetPasswordText: {fileID: 252100374}
+  usernameField: {fileID: 0}
+  scoreElement: {fileID: 0}
+  scoreboardContent: {fileID: 0}
 --- !u!1 &293695238
 GameObject:
   m_ObjectHideFlags: 0
@@ -5529,6 +5532,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: -8, y: -5, z: -8, w: -5}
   m_Softness: {x: 0, y: 0}
+--- !u!1 &1620303547
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1620303548}
+  m_Layer: 0
+  m_Name: ---AuthUI---
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1620303548
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620303547}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1753627566}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1634516805
 GameObject:
   m_ObjectHideFlags: 0
@@ -5770,7 +5805,7 @@ GameObject:
   - component: {fileID: 1753627563}
   - component: {fileID: 1753627567}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: Auth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5854,7 +5889,7 @@ RectTransform:
   - {fileID: 573344643}
   - {fileID: 657653703}
   - {fileID: 293695239}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1620303548}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -7086,6 +7121,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 365665831}
-  - {fileID: 1753627566}
   - {fileID: 710592439}
   - {fileID: 1942235424}
+  - {fileID: 1620303548}

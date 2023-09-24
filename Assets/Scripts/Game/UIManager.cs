@@ -6,7 +6,7 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
-    [SerializeField] GameObject loginUI, registerUI, forgotUI;
+    [SerializeField] GameObject loginUI, registerUI, forgotUI, authUI;
 
     private void Awake()
     {
@@ -37,5 +37,10 @@ public class UIManager : MonoBehaviour
     {
         forgotUI.SetActive(true);
         loginUI.SetActive(false);
+    }
+
+    public void RemoveAuth()
+    {
+        authUI.SetActive(false);
     }
 }

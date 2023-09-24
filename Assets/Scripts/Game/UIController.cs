@@ -10,6 +10,7 @@ public class UIController : MonoBehaviour
     [SerializeField] GameObject ball;
     [SerializeField] TextMeshProUGUI scoreText;
     [SerializeField] ScoreManager scoreManager;
+    public static UIController instance;
 
     [Header("Menu")]
     [SerializeField] GameObject menuUI;
