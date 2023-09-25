@@ -122,7 +122,7 @@ public class AuthManager : MonoBehaviour
 
     public void UpdateScore()
     {
-        StartCoroutine(Score(highScore.text));
+        StartCoroutine(Score(int.Parse(highScore.text)));
     }
     IEnumerator Login(string email, string password)
     {
@@ -242,7 +242,7 @@ public class AuthManager : MonoBehaviour
         }
     }
 
-    IEnumerator Score(string score)
+    IEnumerator Score(int score)
     {
         var DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(score);
 
