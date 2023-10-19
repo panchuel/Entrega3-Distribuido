@@ -40,7 +40,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] TMP_Text usernameField;
     [SerializeField] GameObject scoreElement;
     [SerializeField] Transform scoreboardContent;
-    [SerializeField] List<User> userList = new List<User>();
+    [SerializeField] List<SystemUsers> userList = new List<SystemUsers>();
 
     [Header("Game")]
     [SerializeField] GameObject ball;
@@ -56,7 +56,8 @@ public class AuthManager : MonoBehaviour
             dependencyStatus = task.Result;
             if (dependencyStatus == DependencyStatus.Available)
             {
-                InitializeFirebase();  
+                InitializeFirebase();
+                DownloadUsers();
             }
             else
             {
@@ -97,7 +98,7 @@ public class AuthManager : MonoBehaviour
                         string userName = userSnapshot.Child("username").Value.ToString();
 
                         // Agrega el usuario a la lista
-                        userList.Add(new User
+                        userList.Add(new SystemUsers
                         {
                             userId = userId,
                             userName = userName,
@@ -134,6 +135,57 @@ public class AuthManager : MonoBehaviour
     public void ScoreBoardButton()
     {
         StartCoroutine(LoadScoreBoard());
+    }
+
+    public void AddFriendButton(string friendUserId)
+    {
+        AddFriend(friendUserId);       
+    }
+
+    public void AddFriend(string friendUserId)
+    {
+        // Asegúrase de que el usuario actual esté autenticado
+        if (user != null)
+        {
+            // Obtiene una referencia a la lista de amigos del usuario actual
+            var friendsReference = dbReference.Child("users").Child(user.UserId).Child("friends");
+
+            // Primero, verifica si el amigo ya está en la lista
+            friendsReference.GetValueAsync().ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted)
+                {
+                    DataSnapshot snapshot = task.Result;
+                    List<string> currentFriends = new List<string>();
+
+                    if (snapshot != null && snapshot.Exists)
+                    {
+                        // Recorre la lista actual de amigos
+                        foreach (var friendId in snapshot.Children)
+                        {
+                            currentFriends.Add(friendId.Value.ToString());
+                        }
+
+                        // Verifica si el amigo ya está en la lista
+                        if (currentFriends.Contains(friendUserId))
+                        {
+                            Debug.LogWarning("El amigo ya está en la lista de amigos.");
+                            return;
+                        }
+
+                        // Agrega el nuevo amigo a la lista
+                        currentFriends.Add(friendUserId);
+
+                        // Actualiza la lista de amigos en Firebase
+                        friendsReference.SetValueAsync(currentFriends);
+                    }
+                }
+            });
+        }
+        else
+        {
+            Debug.LogWarning("El usuario no está autenticado.");
+        }
     }
 
     void FogotPassword(string forgotPasswordEmail)
@@ -208,7 +260,7 @@ public class AuthManager : MonoBehaviour
             warningLoginText.text = "";
 
             StartCoroutine(LoadData());
-            DownloadUsers();
+            
 
             yield return new WaitForSeconds(1);
 
@@ -278,6 +330,7 @@ public class AuthManager : MonoBehaviour
                     {
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetValueAsync(new List<string>());
                         UIManager.instance.LoginScreen();
                         warningRegisterText.text = "";
                     }
@@ -346,9 +399,9 @@ public class AuthManager : MonoBehaviour
 
 
 [System.Serializable]
-public class User
+public class SystemUsers
 {
     public string userId;
     public string userName;
-    
+    public List<string> friends; // Lista de IDs de amigos
 }
