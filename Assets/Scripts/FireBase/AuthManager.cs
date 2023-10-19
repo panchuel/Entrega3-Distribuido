@@ -40,6 +40,7 @@ public class AuthManager : MonoBehaviour
     [SerializeField] TMP_Text usernameField;
     [SerializeField] GameObject scoreElement;
     [SerializeField] Transform scoreboardContent;
+    [SerializeField] List<User> userList = new List<User>();
 
     [Header("Game")]
     [SerializeField] GameObject ball;
@@ -50,13 +51,18 @@ public class AuthManager : MonoBehaviour
 
     private void Awake()
     {
-
-
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
             dependencyStatus = task.Result;
-            if (dependencyStatus == DependencyStatus.Available) InitializeFirebase();
-            else print($"No se pueden resolver todas las dependencias de Firebase: {dependencyStatus}");
+            if (dependencyStatus == DependencyStatus.Available)
+            {
+                InitializeFirebase();
+                DownloadUsers();
+            }
+            else
+            {
+                Debug.LogError($"No se pueden resolver todas las dependencias de Firebase: {dependencyStatus}");
+            }
         });
     }
 
@@ -65,6 +71,44 @@ public class AuthManager : MonoBehaviour
         print($"Configurando autorización de Firebase");
         auth = FirebaseAuth.DefaultInstance;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
+    }
+
+    void DownloadUsers()
+    {
+        DatabaseReference usersReference = dbReference.Child("users");
+
+        usersReference.GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                // Manejar errores
+                Debug.LogError("Error al descargar usuarios: " + task.Exception);
+            }
+            else if (task.IsCompleted)
+            {
+                DataSnapshot snapshot = task.Result;
+
+                if (snapshot != null && snapshot.Exists)
+                {
+                    userList.Clear(); // Limpia la lista antes de agregar nuevos usuarios
+
+                    foreach (var userSnapshot in snapshot.Children)
+                    {
+                        string userId = userSnapshot.Key;
+                        string userName = userSnapshot.Child("username").Value.ToString();
+
+                        // Agrega el usuario a la lista
+                        userList.Add(new User
+                        {
+                            userId = userId,
+                            userName = userName,
+                        });
+                    }
+
+                    // Puedes realizar cualquier otra lógica que necesites aquí
+                }
+            }
+        });
     }
 
     public void LoginButton()
@@ -298,4 +342,13 @@ public class AuthManager : MonoBehaviour
         menuUI.SetActive(false);
         ball.SetActive(false);
     }
+}
+
+
+[System.Serializable]
+public class User
+{
+    public string userId;
+    public string userName;
+    
 }
