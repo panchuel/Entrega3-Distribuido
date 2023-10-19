@@ -1282,6 +1282,7 @@ MonoBehaviour:
   usernameField: {fileID: 1438740517}
   scoreElement: {fileID: 5692659669566570706, guid: d0c7c4bf27537f4499302d2d5f735d42, type: 3}
   scoreboardContent: {fileID: 1600836716}
+  userList: []
   ball: {fileID: 861067232}
   gameUI: {fileID: 29438556}
   menuUI: {fileID: 950585491}
@@ -1355,7 +1356,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &207572003
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13947,7 +13948,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1889438200
 Transform:
   m_ObjectHideFlags: 0

@@ -56,8 +56,7 @@ public class AuthManager : MonoBehaviour
             dependencyStatus = task.Result;
             if (dependencyStatus == DependencyStatus.Available)
             {
-                InitializeFirebase();
-                DownloadUsers();
+                InitializeFirebase();  
             }
             else
             {
@@ -209,6 +208,7 @@ public class AuthManager : MonoBehaviour
             warningLoginText.text = "";
 
             StartCoroutine(LoadData());
+            DownloadUsers();
 
             yield return new WaitForSeconds(1);
 
