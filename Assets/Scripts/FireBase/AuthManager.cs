@@ -300,7 +300,7 @@ public class AuthManager : MonoBehaviour
 
                     var ProfileTask = user.UpdateUserProfileAsync(profile);
 
-                    yield return new WaitUntil(predicate :  () => ProfileTask.IsCompleted);
+                    yield return new WaitUntil(predicate: () => ProfileTask.IsCompleted);
 
                     if (ProfileTask.Exception != null)
                     {
@@ -312,8 +312,7 @@ public class AuthManager : MonoBehaviour
                     else
                     {
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());                    
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("Friends").SetValueAsync(emptyFriendList);
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
