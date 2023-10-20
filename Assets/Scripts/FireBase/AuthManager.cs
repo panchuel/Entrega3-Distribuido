@@ -54,7 +54,7 @@ public class AuthManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            StartCoroutine(Lobby());
+            
         }
         
     }
@@ -94,7 +94,8 @@ public class AuthManager : MonoBehaviour
 
     public void LoginButton()
     {
-        StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));      
+        StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
+        StartCoroutine(Lobby());
     }
 
     public void RegisterButton()
@@ -312,7 +313,8 @@ public class AuthManager : MonoBehaviour
                     else
                     {
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());                    
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("Friends").SetValueAsync(emptyFriendList);
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
@@ -396,7 +398,7 @@ public class AuthManager : MonoBehaviour
             {
                 string userId = childSnapshot.Key;
                 string userName = childSnapshot.Child("username").Value.ToString();
-                bool Friends = childSnapshot.Child("IsMyFriend").Value.Equals(false);
+                bool Friends = childSnapshot.Child("IsMyFriend").Value.Equals(true);
 
                 GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
                 UIManager.instance.AddUserToLobby(userName, userId, Friends);
