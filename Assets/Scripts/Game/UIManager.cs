@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -23,6 +24,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject popUpFriendRequest;
     [SerializeField] GameObject popUpFriendIsOnline;
     [SerializeField] GameObject popUpMatchFound;
+    [SerializeField] Transform popUpContainer;
 
     [Header("Lobby and Friends related")]
     [SerializeField] Transform containerLobby;
@@ -46,7 +48,7 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        /* Testing methods
+        /* Testing methods for lobbyusers
         if (Input.GetKeyDown(KeyCode.Q))
         {
             AddUserToLobby("redman", "dada231231241", true);
@@ -67,6 +69,27 @@ public class UIManager : MonoBehaviour
             ClearAllUsers();
         }
         */
+
+        
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            PopUpFriendConnected("Gotensfer");
+        }
+
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            PopUpFriendRequest("Rodas", "sssssss");
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            PupUpMatchFound("Caco");
+        }
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            ClearAllPopups();
+        }
     }
 
     #region"Utility methods"
@@ -87,9 +110,12 @@ public class UIManager : MonoBehaviour
 
     void ClearAllPopups()
     {
-        popUpFriendIsOnline.SetActive(false);
-        popUpFriendRequest.SetActive(false);
-        popUpMatchFound.SetActive(false);
+        int len = popUpContainer.childCount;
+
+        for (int i = len - 1; i >= 0; i--)
+        {
+            Destroy(popUpContainer.GetChild(i).gameObject);
+        }
     }
     #endregion
 
@@ -157,19 +183,31 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region"Popups methods"
-    public void PopUpFriendRequest()
+    public void PopUpFriendRequest(string userName, string userID)
     {
-
+        GameObject newPopup = Instantiate(popUpFriendRequest, popUpContainer);
+        newPopup.GetComponent<TitleHandler>().SetString($"{userName} wants to be friends!");
+        newPopup.GetComponent<FriendRequestHandler>().Set(userID);
     }
 
-    public void PopUpFriendConnected()
+    public void PopUpFriendConnected(string userName)
     {
-
+        GameObject newPopup = Instantiate(popUpFriendIsOnline, popUpContainer);
+        newPopup.GetComponent<TitleHandler>().SetString($"{userName} is online!");
     }
 
-    public void PupUpMatchFound()
+    public void PupUpMatchFound(string userName)
     {
+        GameObject newPopup = Instantiate(popUpMatchFound, popUpContainer);
+        newPopup.GetComponent<TitleHandler>().SetString($"Match found with {userName}");
 
+        Destroy(newPopup, 2f);
+        Invoke(nameof(Oklahoma), 2f);
+    }
+
+    void Oklahoma()
+    {
+        print("Juego iniciado");
     }
     #endregion
 

@@ -403,7 +403,6 @@ public class AuthManager : MonoBehaviour
                 UIManager.instance.AddUserToLobby(userName, userId, Friends);
             }
         }
-
     }
 }
 
