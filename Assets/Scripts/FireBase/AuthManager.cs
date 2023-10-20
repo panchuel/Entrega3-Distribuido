@@ -48,9 +48,19 @@ public class AuthManager : MonoBehaviour
     [SerializeField] TMP_Text highScore;
     [SerializeField] LoseManager highScoreIntern;
 
+    public static AuthManager instance;
 
     private void Awake()
     {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
             dependencyStatus = task.Result;

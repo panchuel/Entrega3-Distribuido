@@ -17,6 +17,6 @@ public class LobbyUser : MonoBehaviour
         this.userName = userName;
         this.userID = userID;
 
-        //addFriendButton.onClick.AddListener();
+        addFriendButton.onClick.AddListener(() => AuthManager.instance.AddFriend(userID));
     }
 }
