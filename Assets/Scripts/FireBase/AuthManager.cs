@@ -50,6 +50,14 @@ public class AuthManager : MonoBehaviour
 
     public static AuthManager instance;
 
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            StartCoroutine(Lobby());
+        }
+        
+    }
     private void Awake()
     {
         if (instance == null)
@@ -86,8 +94,7 @@ public class AuthManager : MonoBehaviour
 
     public void LoginButton()
     {
-        StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
-        StartCoroutine(Lobby());
+        StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));      
     }
 
     public void RegisterButton()
@@ -287,6 +294,8 @@ public class AuthManager : MonoBehaviour
 
                 if (user != null)
                 {
+                    List<SystemUsers> emptyFriendList = new List<SystemUsers>();
+
                     UserProfile profile = new UserProfile { DisplayName = username };
 
                     var ProfileTask = user.UpdateUserProfileAsync(profile);
@@ -304,7 +313,8 @@ public class AuthManager : MonoBehaviour
                     {
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetValueAsync(new List<string>());
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("Friends").SetValueAsync(emptyFriendList);
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
                     }
@@ -385,11 +395,12 @@ public class AuthManager : MonoBehaviour
 
             foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
             {
-                string username = childSnapshot.Child("username").Value.ToString();
-                int score = int.Parse(childSnapshot.Child("score").Value.ToString());
+                string userId = childSnapshot.Key;
+                string userName = childSnapshot.Child("username").Value.ToString();
+                bool Friends = childSnapshot.Child("IsMyFriend").Value.;
 
                 GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
-                LobbyUser.GetComponent<LobbyUser>().Set(userName, userID);
+                UIManager.instance.AddUserToLobby(userName, userId, Friends);
             }
         }
 
