@@ -24,6 +24,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject popUpFriendIsOnline;
     [SerializeField] GameObject popUpMatchFound;
 
+    [Header("Lobby and Friends related")]
+    [SerializeField] Transform containerLobby;
+    [SerializeField] Transform containerFriends;
+    [SerializeField] GameObject lobbyUserPrefab;
+
+    List<GameObject> lobbyUsers = new List<GameObject>();
+    List<GameObject> friendUsers = new List<GameObject>();
+
     private void Awake()
     {
         if(instance == null)
@@ -34,6 +42,31 @@ public class UIManager : MonoBehaviour
         {
             Destroy(this);
         }
+    }
+
+    private void Update()
+    {
+        /* Testing methods
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            AddUserToLobby("redman", "dada231231241", true);
+        }
+
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            AddUserToLobby("rodas", "dada231231241", false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            AddUserToFriends("gotensfer", "2121515125");
+        }
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            ClearAllUsers();
+        }
+        */
     }
 
     #region"Utility methods"
@@ -137,6 +170,54 @@ public class UIManager : MonoBehaviour
     public void PupUpMatchFound()
     {
 
+    }
+    #endregion
+
+    #region"Lobby user methods"
+    public void ClearLobbyUsers()
+    {
+        int len = lobbyUsers.Count;
+        for (int i = 0; i < len; i++)
+        {
+            Destroy(lobbyUsers[i]);
+        }
+
+        lobbyUsers.Clear();
+    }
+
+    public void ClearFriendUsers()
+    {
+        int len = friendUsers.Count;
+        for (int i = 0; i < len; i++)
+        {
+            Destroy(friendUsers[i]);
+        }
+
+        friendUsers.Clear();
+    }
+
+    public void ClearAllUsers()
+    {
+        ClearLobbyUsers();
+        ClearFriendUsers();
+    }
+
+    public void AddUserToLobby(string userName, string userID, bool isFriend)
+    {
+        GameObject newLobbyUser = Instantiate(lobbyUserPrefab, containerLobby);
+        newLobbyUser.GetComponent<LobbyUser>().Set(userName, userID);
+        newLobbyUser.GetComponent<LobbyUser>().SetStatus(isFriend);
+
+        lobbyUsers.Add(newLobbyUser);
+    }
+
+    public void AddUserToFriends(string userName, string userID)
+    {
+        GameObject newLobbyUser = Instantiate(lobbyUserPrefab, containerFriends);
+        newLobbyUser.GetComponent<LobbyUser>().Set(userName, userID);
+        newLobbyUser.GetComponent<LobbyUser>().SetStatus(true);
+
+        friendUsers.Add(newLobbyUser);
     }
     #endregion
 }
