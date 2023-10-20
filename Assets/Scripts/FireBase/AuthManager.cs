@@ -392,10 +392,16 @@ public class AuthManager : MonoBehaviour
         menuUI.SetActive(false);
         ball.SetActive(false);
     }
+
     IEnumerator UsersNotFriends(string userId)
     {
         var DBTask = dbReference.Child("users").OrderByChild("Id").GetValueAsync();
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+    }
+
+    public void AddFriend(string userID)
+    {
 
     }
 }
