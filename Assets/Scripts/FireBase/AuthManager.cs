@@ -152,6 +152,7 @@ public class AuthManager : MonoBehaviour
 
     public void SendFriendRequest(string friendUserID)
     {
+        
         // Obtener la referencia al usuario actual en la base de datos
         DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
         // Verificar si el usuario actual ya ha enviado una solicitud de amistad a esta persona
