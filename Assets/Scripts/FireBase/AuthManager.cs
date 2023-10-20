@@ -114,6 +114,7 @@ public class AuthManager : MonoBehaviour
     public void LoginButton()
     {
         StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
+        //StartCoroutine(UsersNotFriends());
     }
 
     public void RegisterButton()
@@ -135,57 +136,6 @@ public class AuthManager : MonoBehaviour
     public void ScoreBoardButton()
     {
         StartCoroutine(LoadScoreBoard());
-    }
-
-    public void AddFriendButton(string friendUserId)
-    {
-        AddFriend(friendUserId);       
-    }
-
-    public void AddFriend(string friendUserId)
-    {
-        // Asegúrase de que el usuario actual esté autenticado
-        if (user != null)
-        {
-            // Obtiene una referencia a la lista de amigos del usuario actual
-            var friendsReference = dbReference.Child("users").Child(user.UserId).Child("friends");
-
-            // Primero, verifica si el amigo ya está en la lista
-            friendsReference.GetValueAsync().ContinueWithOnMainThread(task =>
-            {
-                if (task.IsCompleted)
-                {
-                    DataSnapshot snapshot = task.Result;
-                    List<string> currentFriends = new List<string>();
-
-                    if (snapshot != null && snapshot.Exists)
-                    {
-                        // Recorre la lista actual de amigos
-                        foreach (var friendId in snapshot.Children)
-                        {
-                            currentFriends.Add(friendId.Value.ToString());
-                        }
-
-                        // Verifica si el amigo ya está en la lista
-                        if (currentFriends.Contains(friendUserId))
-                        {
-                            Debug.LogWarning("El amigo ya está en la lista de amigos.");
-                            return;
-                        }
-
-                        // Agrega el nuevo amigo a la lista
-                        currentFriends.Add(friendUserId);
-
-                        // Actualiza la lista de amigos en Firebase
-                        friendsReference.SetValueAsync(currentFriends);
-                    }
-                }
-            });
-        }
-        else
-        {
-            Debug.LogWarning("El usuario no está autenticado.");
-        }
     }
 
     void FogotPassword(string forgotPasswordEmail)
@@ -215,10 +165,56 @@ public class AuthManager : MonoBehaviour
         });
     }
 
+    public void SendFriendRequest(string friendUserID)
+    {
+        // Obtener la referencia al usuario actual en la base de datos
+        DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
+        // Verificar si el usuario actual ya ha enviado una solicitud de amistad a esta persona
+        DatabaseReference friendRequestsRef = currentUserRef.Child("friendRequests");
+        friendRequestsRef.GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Result.Exists)
+            {
+                if (!task.Result.HasChild(friendUserID))
+                {
+                    // Si no ha enviado una solicitud previamente, envía la solicitud
+                    friendRequestsRef.Child(friendUserID).SetValueAsync(true);
+                    Debug.Log("Solicitud de amistad enviada.");
+                }
+                else
+                {
+                    Debug.LogWarning("Ya has enviado una solicitud de amistad a este usuario.");
+                }
+            }
+            else
+            {
+                // Si no hay solicitud previa, crea la lista y envía la solicitud
+                friendRequestsRef.SetValueAsync(friendUserID, true);
+                Debug.Log("Solicitud de amistad enviada.");
+            }
+        });
+    }
+
+    public void AcceptFriendRequest(string requesterUserID)
+    {
+        // Obtener la referencia al usuario actual en la base de datos
+        DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
+        // Obtener la referencia al usuario que envió la solicitud
+        DatabaseReference requesterUserRef = dbReference.Child("users").Child(requesterUserID);
+        // Agregar el requesterUserID a la lista de amigos del usuario actual
+        currentUserRef.Child("friends").Child(requesterUserID).SetValueAsync(true);
+        // Eliminar la solicitud de amistad del usuario actual
+        currentUserRef.Child("friendRequests").Child(requesterUserID).RemoveValueAsync();
+        // Agregar al usuario actual a la lista de amigos del solicitante
+        requesterUserRef.Child("friends").Child(user.UserId).SetValueAsync(true);
+
+        Debug.Log("Solicitud de amistad aceptada.");
+    }
     public void UpdateScore()
     {
         StartCoroutine(Score(int.Parse(highScore.text)));
-    }
+    }  
+
     IEnumerator Login(string email, string password)
     {
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(email, password);
@@ -396,6 +392,12 @@ public class AuthManager : MonoBehaviour
         menuUI.SetActive(false);
         ball.SetActive(false);
     }
+    IEnumerator UsersNotFriends(string userId)
+    {
+        var DBTask = dbReference.Child("users").OrderByChild("Id").GetValueAsync();
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+    }
 }
 
 
@@ -403,6 +405,5 @@ public class AuthManager : MonoBehaviour
 public class SystemUsers
 {
     public string userId;
-    public string userName;
-    public List<string> friends; // Lista de IDs de amigos
+    public string userName;   
 }
