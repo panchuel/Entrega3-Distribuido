@@ -67,7 +67,6 @@ public class AuthManager : MonoBehaviour
             if (dependencyStatus == DependencyStatus.Available)
             {
                 InitializeFirebase();
-                DownloadUsers();
             }
             else
             {
@@ -83,53 +82,21 @@ public class AuthManager : MonoBehaviour
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
-    void DownloadUsers()
-    {
-        DatabaseReference usersReference = dbReference.Child("users");
-
-        usersReference.GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            if (task.IsFaulted)
-            {
-                // Manejar errores
-                Debug.LogError("Error al descargar usuarios: " + task.Exception);
-            }
-            else if (task.IsCompleted)
-            {
-                DataSnapshot snapshot = task.Result;
-
-                if (snapshot != null && snapshot.Exists)
-                {
-                    userList.Clear(); // Limpia la lista antes de agregar nuevos usuarios
-
-                    foreach (var userSnapshot in snapshot.Children)
-                    {
-                        string userId = userSnapshot.Key;
-                        string userName = userSnapshot.Child("username").Value.ToString();
-
-                        // Agrega el usuario a la lista
-                        userList.Add(new SystemUsers
-                        {
-                            userId = userId,
-                            userName = userName,
-                        });
-                    }
-
-                    // Puedes realizar cualquier otra lógica que necesites aquí
-                }
-            }
-        });
-    }
+   
 
     public void LoginButton()
     {
         StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
-        //StartCoroutine(UsersNotFriends());
+        StartCoroutine(Lobby());
     }
 
     public void RegisterButton()
     {
         StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, usernameRegisterField.text));
+    }
+    public void AddFriend(string userID)
+    {
+        SendFriendRequest(userID);
     }
 
     public void ForgotPasswordButton()
@@ -403,15 +370,28 @@ public class AuthManager : MonoBehaviour
         ball.SetActive(false);
     }
 
-    IEnumerator UsersNotFriends(string userId)
+    IEnumerator Lobby()
     {
-        var DBTask = dbReference.Child("users").OrderByChild("Id").GetValueAsync();
+        var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-    }
+        if (DBTask.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
+        else
+        {
+            DataSnapshot snapshot = DBTask.Result;
 
-    public void AddFriend(string userID)
-    {
+            //Destruyo todos los elementos de la tabla
+            foreach (Transform child in scoreboardContent.transform) Destroy(child.gameObject);
+
+            foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
+            {
+                string username = childSnapshot.Child("username").Value.ToString();
+                int score = int.Parse(childSnapshot.Child("score").Value.ToString());
+
+                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
+                LobbyUser.GetComponent<LobbyUser>().Set(userName, userID);
+            }
+        }
 
     }
 }
