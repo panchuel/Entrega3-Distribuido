@@ -1049,7 +1049,11 @@ MonoBehaviour:
   usernameField: {fileID: 1438740517}
   scoreElement: {fileID: 5692659669566570706, guid: d0c7c4bf27537f4499302d2d5f735d42, type: 3}
   scoreboardContent: {fileID: 1600836716}
-  userList: []
+  userList:
+  - userId: 
+    userName: 
+  - userId: 
+    userName: 
   ball: {fileID: 861067232}
   gameUI: {fileID: 29438556}
   menuUI: {fileID: 950585491}

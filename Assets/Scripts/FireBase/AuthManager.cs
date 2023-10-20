@@ -296,7 +296,8 @@ public class AuthManager : MonoBehaviour
 
                 if (user != null)
                 {
-                    List<SystemUsers> emptyFriendList = new List<SystemUsers>();
+                    List<SystemUsers> emptyFriendList = new List<SystemUsers>(); 
+                    List<SystemUsers> emptyNotiList = new List<SystemUsers>();
 
                     UserProfile profile = new UserProfile { DisplayName = username };
 
@@ -317,6 +318,7 @@ public class AuthManager : MonoBehaviour
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("Friends").SetValueAsync(emptyFriendList);
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("Notificaciones").SetValueAsync(emptyFriendList);
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
                     }
@@ -403,6 +405,49 @@ public class AuthManager : MonoBehaviour
 
                 GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
                 UIManager.instance.AddUserToLobby(userName, userId, Friends);
+            }
+        }
+    }
+    IEnumerator Notific()
+    {
+        var DBTask = dbReference.Child("users").OrderByChild("username").GetValueAsync();
+
+        yield return new WaitUntil(() => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
+        }
+        else
+        {
+            DataSnapshot snapshot = DBTask.Result;
+
+            // Destruye todos los elementos de la tabla
+            foreach (Transform child in scoreboardContent.transform)
+            {
+                Destroy(child.gameObject);
+            }
+
+            foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
+            {
+                string userId = childSnapshot.Key;
+                string userName = childSnapshot.Child("username").Value.ToString();
+                bool isFriend = (bool)childSnapshot.Child("IsMyFriend").Value;
+
+                // Obtén la lista de notificaciones del usuario actual
+                List<string> notifications = new List<string>();
+
+                if (childSnapshot.Child("Notificaciones").Exists)
+                {
+                    foreach (var notificationSnapshot in childSnapshot.Child("Notificaciones").Children)
+                    {
+                        notifications.Add(notificationSnapshot.Value.ToString());
+                    }
+                }
+
+                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
+
+                //UIManager.instance.AddUserToLobby(userName, userId, isFriend, notifications);
             }
         }
     }
