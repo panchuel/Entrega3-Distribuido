@@ -211,7 +211,7 @@ public class AuthManager : MonoBehaviour
             }
 
             confirmationPasswordText.text = "El correo para reestablecer la contraseña ha sido enviado";
-            UIManager.instance.LoginScreen();
+            UIManager.instance.SetLoginScreen();
         });
     }
 
@@ -266,10 +266,11 @@ public class AuthManager : MonoBehaviour
 
             usernameField.text = user.DisplayName;
 
-            UIManager.instance.RemoveAuth();
-            gameUI.SetActive(true);
-            menuUI.SetActive(true);
-            ball.SetActive(true);
+            UIManager.instance.SetHomeScreen();
+
+            //gameUI.SetActive(true);
+            //menuUI.SetActive(true);
+            //ball.SetActive(true);
         }
     }
 
@@ -331,7 +332,7 @@ public class AuthManager : MonoBehaviour
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetValueAsync(new List<string>());
-                        UIManager.instance.LoginScreen();
+                        UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
                     }
                 }

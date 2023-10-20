@@ -6,7 +6,23 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
-    [SerializeField] GameObject loginUI, registerUI, forgotUI, authUI;
+    [SerializeField] GameObject UIMenu;
+
+    [Header("Screens")]
+    [SerializeField] GameObject loginScreen;
+    [SerializeField] GameObject registerScreen;
+    [SerializeField] GameObject forgotScreen;
+    [SerializeField] GameObject homeScreen;
+    [SerializeField] GameObject matchScreen;
+
+    [Header("Home subscreens")]
+    [SerializeField] GameObject lobbyScreen;
+    [SerializeField] GameObject friendsScreen;
+
+    [Header("Popups")]
+    [SerializeField] GameObject popUpFriendRequest;
+    [SerializeField] GameObject popUpFriendIsOnline;
+    [SerializeField] GameObject popUpMatchFound;
 
     private void Awake()
     {
@@ -20,27 +36,107 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void LoginScreen()
+    #region"Utility methods"
+    void ClearScreens()
     {
-        loginUI.SetActive(true);
-        registerUI.SetActive(false);
-        forgotUI.SetActive(false);
+        loginScreen.SetActive(false);
+        registerScreen.SetActive(false);
+        forgotScreen.SetActive(false);
+        homeScreen.SetActive(false);
+        matchScreen.SetActive(false);
     }
 
-    public void RegisterScreen()
+    void ClearSubscreens()
     {
-        registerUI.SetActive(true);
-        loginUI.SetActive(false);
+        lobbyScreen.SetActive(false);
+        friendsScreen.SetActive(false);
     }
 
-    public void ForgotPasswordScreen()
+    void ClearAllPopups()
     {
-        forgotUI.SetActive(true);
-        loginUI.SetActive(false);
+        popUpFriendIsOnline.SetActive(false);
+        popUpFriendRequest.SetActive(false);
+        popUpMatchFound.SetActive(false);
+    }
+    #endregion
+
+    #region"Set screen methods"
+    public void SetLoginScreen()
+    {
+        ClearScreens();
+        loginScreen.SetActive(true);
     }
 
-    public void RemoveAuth()
+    public void SetRegisterScreen()
     {
-        authUI.SetActive(false);
+        ClearScreens();
+        registerScreen.SetActive(true);
     }
+
+    public void SetForgotPasswordScreen()
+    {
+        ClearScreens();
+        forgotScreen.SetActive(true);
+    }
+
+    public void SetHomeScreen()
+    {
+        ClearScreens();
+        ClearSubscreens();
+
+        homeScreen.SetActive(true);
+        lobbyScreen.SetActive(true);
+    }
+
+    public void SetMatchScreen()
+    {
+        ClearScreens();
+        matchScreen.SetActive(true);
+    }
+
+    public void DisableMenuUIs()
+    {
+        ClearScreens();
+        ClearAllPopups();
+        UIMenu.SetActive(false);
+    }
+
+    public void EnableMenuUIs()
+    {
+        ClearScreens();
+        ClearAllPopups();
+        UIMenu.SetActive(true);
+    }
+    #endregion
+
+    #region"Set home subscreen methods"
+    public void SetSubscreenLobby()
+    {
+        friendsScreen.SetActive(false);
+        lobbyScreen.SetActive(true);
+    }
+
+    public void SetSubscreenFriends()
+    {
+        lobbyScreen.SetActive(false);
+        friendsScreen.SetActive(true);
+    }
+    #endregion
+
+    #region"Popups methods"
+    public void PopUpFriendRequest()
+    {
+
+    }
+
+    public void PopUpFriendConnected()
+    {
+
+    }
+
+    public void PupUpMatchFound()
+    {
+
+    }
+    #endregion
 }
