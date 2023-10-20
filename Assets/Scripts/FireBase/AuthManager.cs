@@ -397,7 +397,7 @@ public class AuthManager : MonoBehaviour
             {
                 string userId = childSnapshot.Key;
                 string userName = childSnapshot.Child("username").Value.ToString();
-                bool Friends = childSnapshot.Child("IsMyFriend").Value.;
+                bool Friends = childSnapshot.Child("IsMyFriend").Value.Equals(false);
 
                 GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
                 UIManager.instance.AddUserToLobby(userName, userId, Friends);
