@@ -70,7 +70,7 @@ public class UIManager : MonoBehaviour
         }
         */
 
-        
+        /* Testing methods for popups
         if (Input.GetKeyDown(KeyCode.Q))
         {
             PopUpFriendConnected("Gotensfer");
@@ -90,6 +90,7 @@ public class UIManager : MonoBehaviour
         {
             ClearAllPopups();
         }
+        */
     }
 
     #region"Utility methods"
