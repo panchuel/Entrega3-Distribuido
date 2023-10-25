@@ -328,7 +328,7 @@ public class AuthManager : MonoBehaviour
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
 
                         // Crear una lista vacía de amigos y agregarla al usuario
-                        
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetRawJsonValueAsync(JsonUtility.ToJson(emptyFriendList));
 
                         UIManager.instance.SetLoginScreen();
