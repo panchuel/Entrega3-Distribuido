@@ -87,7 +87,7 @@ public class AuthManager : MonoBehaviour
         });
     }
 
-    private void OnDisable()
+    public void Deactivate()
     {
         SetSelfOnlineStatus(false);
     }
