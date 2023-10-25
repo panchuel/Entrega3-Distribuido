@@ -276,6 +276,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   acceptRequestButton: {fileID: 9039967975367364669}
+  cancelRequestButton: {fileID: 7394218670816228664}
 --- !u!1 &4908335282468790360
 GameObject:
   m_ObjectHideFlags: 0

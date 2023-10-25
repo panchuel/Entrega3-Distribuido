@@ -184,11 +184,11 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region"Popups methods"
-    public void PopUpFriendRequest(string userName, string userID)
+    public void PopUpFriendRequest(string userName, string userID, string requestKey)
     {
         GameObject newPopup = Instantiate(popUpFriendRequest, popUpContainer);
         newPopup.GetComponent<TitleHandler>().SetString($"{userName} wants to be friends!");
-        newPopup.GetComponent<FriendRequestHandler>().Set(userID);
+        newPopup.GetComponent<FriendRequestHandler>().Set(userID, requestKey);
     }
 
     public void PopUpFriendConnected(string userName)
