@@ -99,8 +99,6 @@ public class AuthManager : MonoBehaviour
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;        
     }
 
-   
-
     public void LoginButton()
     {
         StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
@@ -927,6 +925,72 @@ public class AuthManager : MonoBehaviour
         StartCoroutine(SetSelfOnlineStatusCoroutine(status));
     }
 
+
+
+
+
+
+
+
+
+    public void MatchMaking()
+    {
+        StartCoroutine(MatchMakingCoroutine());
+    }
+
+    IEnumerator MatchMakingCoroutine()
+    {
+        yield return new WaitForSeconds(3f);
+
+        DBUser selfUser = null;
+        var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
+        else
+        {
+            DataSnapshot snapshot = DBTask.Result;
+
+            //Destruyo todos los elementos de la tabla
+            UIManager.instance.ClearLobbyUsers();
+
+            foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
+            {
+                if (string.Equals(childSnapshot.Key, user.UserId))
+                {
+                    string jsonData = childSnapshot.GetRawJsonValue();
+                    selfUser = JsonUtility.FromJson<DBUser>(jsonData);
+                    break;
+                }
+            }
+
+            bool hasFoundMatch = false;
+
+            while (!hasFoundMatch)
+            {
+                foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
+                {
+                    if (string.Equals(childSnapshot.Key, user.UserId)) continue;
+
+                    string userId = childSnapshot.Key;
+                    string userName = childSnapshot.Child("username").Value.ToString();
+
+
+                    string jsonData = childSnapshot.GetRawJsonValue();
+                    DBUser otherUser = JsonUtility.FromJson<DBUser>(jsonData);
+
+                    if (otherUser.isOnline) // todo: Fix, si alguien no esta conectado, esto crasheara.
+                    {
+                        if (Random.Range(0, 2) == 1) // Escogido por el 50/50 del matchmaking
+                        {
+                            hasFoundMatch = true;
+                            UIManager.instance.PopUpMatchFound(otherUser.username);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 

@@ -197,7 +197,7 @@ public class UIManager : MonoBehaviour
         newPopup.GetComponent<TitleHandler>().SetString($"{userName} is online!");
     }
 
-    public void PupUpMatchFound(string userName)
+    public void PopUpMatchFound(string userName)
     {
         GameObject newPopup = Instantiate(popUpMatchFound, popUpContainer);
         newPopup.GetComponent<TitleHandler>().SetString($"Match found with {userName}");
