@@ -329,24 +329,33 @@ public class AuthManager : MonoBehaviour
         while (isMatchmaking)
         {
             yield return new WaitForSeconds(1);
-            // Check if a match has been found, you can implement logic to find a match based on your requirements.
-            // For example, check if there is another player in matchmaking.
+            // Check if a match has been found
             DatabaseReference otherMatchmakingRef = dbReference.Child("matchmaking");
             otherMatchmakingRef.GetValueAsync().ContinueWith(task =>
             {
                 if (task.Result.Exists)
                 {
+                    // Lista de jugadores en emparejamiento
+                    List<string> matchmakingPlayers = new List<string>();
+
                     foreach (var childSnapshot in task.Result.Children)
                     {
                         if (childSnapshot.Key != matchmakingUserID && childSnapshot.Child("inMatchmaking").Value.ToString() == "true")
                         {
-                            // Match found, start the game or perform additional setup
-                            isMatchmaking = false;
-                            Debug.Log("Match found with player: " + childSnapshot.Key);
-
-                            // You can perform additional game setup here and inform both players that the match has been found.
-                            // For example, by setting up a game session and updating the UI.
+                            matchmakingPlayers.Add(childSnapshot.Key);
                         }
+                    }
+
+                    // Si hay otros jugadores en emparejamiento, selecciona uno aleatoriamente
+                    if (matchmakingPlayers.Count > 0)
+                    {
+                        string opponentUserID = matchmakingPlayers[Random.Range(0, matchmakingPlayers.Count)];
+
+                        // Aquí puedes realizar una lógica adicional, como informar a ambos jugadores y configurar una sesión de juego.
+
+                        // Finaliza el proceso de emparejamiento
+                        isMatchmaking = false;
+                        Debug.Log("Match found with player: " + opponentUserID);
                     }
                 }
             });
