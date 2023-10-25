@@ -819,7 +819,16 @@ public class AuthManager : MonoBehaviour
     private void RemoveFriendRequest(string requestKey)
     {
         // Remove the friend request using the requestKey
-        dbReference.Child("friend-request").Child(requestKey).RemoveValueAsync();
+        FriendRequest friendRequest = new FriendRequest()
+        {
+            senderUserId = "-1",
+            recipientUserId = "-1",
+            accepted = true
+        };
+
+        string jsonUpdate = JsonUtility.ToJson(friendRequest);
+
+        dbReference.Child("friend_request").Child(requestKey).SetRawJsonValueAsync(jsonUpdate);
         print("Removed friend request");
     }
 }
