@@ -1064,6 +1064,9 @@ MonoBehaviour:
   scoreboardUI: {fileID: 171923396}
   highScore: {fileID: 1749252539}
   highScoreIntern: {fileID: 1903448407}
+  isMatchmaking: 0
+  matchmakingUserID: 
+  userID: 
 --- !u!1 &194083639
 GameObject:
   m_ObjectHideFlags: 0
@@ -2090,7 +2093,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 189783064}
         m_TargetAssemblyTypeName: AuthManager, Assembly-CSharp
-        m_MethodName: JoinMatchmaking
+        m_MethodName: StartMatchmaking
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

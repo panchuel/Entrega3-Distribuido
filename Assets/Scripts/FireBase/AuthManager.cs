@@ -50,18 +50,17 @@ public class AuthManager : MonoBehaviour
     [SerializeField] LoseManager highScoreIntern;
 
     public static AuthManager instance;
-    private bool isMatchmaking = false;
-    private string matchmakingUserID = "";
+
+    public bool isMatchmaking = false;
+    public string matchmakingUserID;
+
+    public string userID;
+    
 
 
-    public void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            
-        }
-        
-    }
+
+
+
     private void Awake()
     {
         if (instance == null)
@@ -86,27 +85,21 @@ public class AuthManager : MonoBehaviour
             }
         });
     }
-
     public void Deactivate()
     {
         SetSelfOnlineStatus(false);
     }
-
     void InitializeFirebase()
     {
         print($"Configurando autorización de Firebase");
         auth = FirebaseAuth.DefaultInstance;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;        
     }
-
-   
-
     public void LoginButton()
     {
         StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
         StartCoroutine(Lobby());
     }
-
     public void RegisterButton()
     {
         StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, usernameRegisterField.text));
@@ -115,7 +108,6 @@ public class AuthManager : MonoBehaviour
     {
         SendFriendRequest(userID);
     }
-
     public void ForgotPasswordButton()
     {
         if (string.IsNullOrEmpty(forgotPasswordEmail.text))
@@ -126,12 +118,10 @@ public class AuthManager : MonoBehaviour
 
         FogotPassword(forgotPasswordEmail.text);
     }
-
     public void ScoreBoardButton()
     {
         StartCoroutine(LoadScoreBoard());
     }
-
     void FogotPassword(string forgotPasswordEmail)
     {
         auth.SendPasswordResetEmailAsync(forgotPasswordEmail).ContinueWithOnMainThread(RestoreTask => {
@@ -158,40 +148,9 @@ public class AuthManager : MonoBehaviour
             UIManager.instance.SetLoginScreen();
         });
     }
-
     public void SendFriendRequest(string receiverUid)
     {
-        /*
-        // Verifica si el usuario ya es amigo del destinatario
-        DatabaseReference currentUserFriendsRef = dbReference.Child("users").Child(user.UserId).Child("friends");
-        currentUserFriendsRef.GetValueAsync().ContinueWith(task =>
-        {
-            if (task.Result.Exists)
-            {
-                if (!task.Result.HasChild(friendUserID))
-                {
-                    // El usuario no es amigo del destinatario, por lo que puede enviar una solicitud
-                    // Crea una nueva solicitud de amistad
-                    FriendRequest request = new FriendRequest
-                    {
-                        senderUserId = user.UserId,
-                        recipientUserId = friendUserID,
-                        accepted = false
-                    };
-
-                    // Agrega la solicitud a la lista de solicitudes de amistad del destinatario
-                    DatabaseReference recipientUserRef = dbReference.Child("users").Child(friendUserID).Child("friendRequests");
-                    recipientUserRef.Child(user.UserId).SetRawJsonValueAsync(JsonUtility.ToJson(request));
-                    Debug.Log("Solicitud de amistad enviada.");
-                }
-                else
-                {
-                    Debug.LogWarning("Ya eres amigo de este usuario.");
-                }
-            }
-        });
-        */
-
+        
         print($"Called SendFriendRequest to UID {receiverUid}");
 
         // Create a unique key for the friend request (e.g., using Push)
@@ -209,23 +168,7 @@ public class AuthManager : MonoBehaviour
         string jsonData = JsonUtility.ToJson(newFriendRequest);
         print(jsonData);
         friendRequestRef.Child(requestKey).SetRawJsonValueAsync(jsonData);
-
-        /*
-        // Define the friend request data
-        Dictionary<string, object> requestData = new Dictionary<string, object>
-        {
-            { "senderUid", senderUid },
-            { "receiverUid", receiverUid },
-            { "status", "pending" }
-            // You can add more information if needed, such as timestamps
-        };
-
-        // Set the friend request data in the database under the unique key
-        friendRequestRef.Child(requestKey).SetValueAsync(requestData);
-        */
     }
-
-
     public void HandleFriendRequest(string friendUid, string requestKey, bool accept)
     {
         // If the user accepts the request
@@ -269,7 +212,6 @@ public class AuthManager : MonoBehaviour
     {
         StartCoroutine(Score(int.Parse(highScore.text)));
     }
-
     public void ShowFriends()
     {
         // Obtén la lista de amigos del usuario actual
@@ -296,71 +238,74 @@ public class AuthManager : MonoBehaviour
             }
         });
     }
-
-    public void JoinMatchmaking()
+    public void StartMatchmaking()
     {
+        if (isMatchmaking)
+        {
+            Debug.LogWarning("Ya estás en cola de emparejamiento.");
+            return;
+        }
+
         isMatchmaking = true;
-        matchmakingUserID = user.UserId;
-        Debug.Log("Buscando partida..."); // Agrega esta línea
-        StartCoroutine(Matchmaking());
+        Debug.Log("Buscando partida...");
 
-
-    }
-
-    IEnumerator Matchmaking()
-    {
-        DatabaseReference matchmakingRef = dbReference.Child("matchmaking");
+        // Coloca al usuario en la cola de emparejamiento
         MatchmakingRequest request = new MatchmakingRequest
         {
-            userID = matchmakingUserID,
-            inMatchmaking = isMatchmaking
+            userID = userID,
+            inMatchmaking = true
         };
         string jsonRequest = JsonUtility.ToJson(request);
-        matchmakingRef.Child(matchmakingUserID).SetRawJsonValueAsync(jsonRequest);
 
-        // Espera 3 segundos antes de detener la búsqueda de la partida
+        dbReference.Child("matchmaking").Child(userID).SetRawJsonValueAsync(jsonRequest);
+
+        StartCoroutine(FindMatch());
+    }
+
+    IEnumerator FindMatch()
+    {
+        // Espera un tiempo antes de detener la búsqueda (simulado)
         yield return new WaitForSeconds(5f);
 
-        // Detiene la búsqueda
+        // Detén la búsqueda
         isMatchmaking = false;
         Debug.Log("Dejó de buscar partida.");
 
-        // Wait for a match to be found
-        while (isMatchmaking)
+        // Consulta la base de datos para encontrar un oponente
+        DatabaseReference matchmakingRef = dbReference.Child("matchmaking");
+        matchmakingRef.GetValueAsync().ContinueWith(task =>
         {
-            yield return new WaitForSeconds(1);
-            // Check if a match has been found
-            DatabaseReference otherMatchmakingRef = dbReference.Child("matchmaking");
-            otherMatchmakingRef.GetValueAsync().ContinueWith(task =>
+            if (task.Result.Exists)
             {
-                if (task.Result.Exists)
+                DataSnapshot snapshot = task.Result;
+
+                // Lista de jugadores en cola de emparejamiento
+                List<string> matchmakingPlayers = new List<string>();
+
+                foreach (var childSnapshot in snapshot.Children)
                 {
-                    // Lista de jugadores en emparejamiento
-                    List<string> matchmakingPlayers = new List<string>();
-
-                    foreach (var childSnapshot in task.Result.Children)
+                    if (childSnapshot.Key != userID && childSnapshot.Child("inMatchmaking").Value.ToString() == "true")
                     {
-                        if (childSnapshot.Key != matchmakingUserID && childSnapshot.Child("inMatchmaking").Value.ToString() == "true")
-                        {
-                            matchmakingPlayers.Add(childSnapshot.Key);
-                        }
-                    }
-
-                    // Si hay otros jugadores en emparejamiento, selecciona uno aleatoriamente
-                    if (matchmakingPlayers.Count > 0)
-                    {
-                        string opponentUserID = matchmakingPlayers[Random.Range(0, matchmakingPlayers.Count)];
-
-                        // Aquí puedes realizar una lógica adicional, como informar a ambos jugadores y configurar una sesión de juego.
-
-                        // Finaliza el proceso de emparejamiento
-                        isMatchmaking = false;
-                        Debug.Log("Match found with player: " + opponentUserID);
+                        matchmakingPlayers.Add(childSnapshot.Key);
                     }
                 }
-            });
-        }
+
+                if (matchmakingPlayers.Count > 0)
+                {
+                    // Se encontró un oponente
+                    string opponentUserID = matchmakingPlayers[0];
+                    Debug.Log("Partida encontrada con el jugador: " + opponentUserID);
+
+                    // Realiza acciones adicionales, como notificar a los jugadores y configurar la sesión de juego
+                }
+                else
+                {
+                    Debug.Log("No se encontraron oponentes en este momento.");
+                }
+            }
+        });
     }
+
 
     IEnumerator Login(string email, string password)
     {
@@ -413,17 +358,6 @@ public class AuthManager : MonoBehaviour
 
             UIManager.instance.SetHomeScreen();
 
-
-
-            // ELDRITCH ABERRATIOn x2
-            // Actualizar user pa ponerlo online
-
-
-            // end
-
-            //gameUI.SetActive(true);
-            //menuUI.SetActive(true);
-            //ball.SetActive(true);
         }
     }
 
@@ -578,7 +512,6 @@ public class AuthManager : MonoBehaviour
         }
         */
     }
-
     IEnumerator LoadScoreBoard()
     {
         var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
@@ -608,7 +541,6 @@ public class AuthManager : MonoBehaviour
         menuUI.SetActive(false);
         ball.SetActive(false);
     }
-
     IEnumerator Lobby()
     {
         yield return new WaitForSeconds(3f);
@@ -663,7 +595,6 @@ public class AuthManager : MonoBehaviour
             }
         }
     }
-
     IEnumerator FriendsRoom()
     {
         yield return new WaitForSeconds(3f);
@@ -719,7 +650,6 @@ public class AuthManager : MonoBehaviour
             }
         }
     }
-
     IEnumerator CheckForLobbyUpdatedCoroutine()
     {
         yield return new WaitForSeconds(5);
@@ -893,16 +823,7 @@ public class AuthManager : MonoBehaviour
         dbReference.Child("friend_request").Child(requestKey).SetRawJsonValueAsync(jsonUpdate);
         print("Removed friend request");
     }
-
-
-
-
-
-
-
-
-
-    // AAAAAAAAAAAAA pal online
+  // AAAAAAAAAAAAA pal online
     IEnumerator SetSelfOnlineStatusCoroutine(bool status)
     {
         var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
@@ -937,8 +858,6 @@ public class AuthManager : MonoBehaviour
     }
 
 }
-
-
 [System.Serializable]
 public class SystemUsers
 {
@@ -947,8 +866,6 @@ public class SystemUsers
     public List<string> friends = new List<string>(); 
     public List<FriendRequest> friendRequests = new List<FriendRequest>(); 
 }
-
-
 [System.Serializable]
 public class FriendRequest
 {
