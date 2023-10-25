@@ -811,8 +811,12 @@ public class AuthManager : MonoBehaviour
         }
 
 
-        string jsonUpdate = JsonUtility.ToJson(selfUser);
-        dbReference.Child("users").Child(user.UserId).SetRawJsonValueAsync(jsonUpdate);
+        string jsonUpdateSelf = JsonUtility.ToJson(selfUser);
+        dbReference.Child("users").Child(user.UserId).SetRawJsonValueAsync(jsonUpdateSelf);
+
+        string jsonUpdateOther = JsonUtility.ToJson(otherUser);
+        dbReference.Child("users").Child(senderUid).SetRawJsonValueAsync(jsonUpdateOther);
+
         print(". . . Finished adding friend");
     }
 
