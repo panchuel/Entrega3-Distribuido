@@ -154,40 +154,32 @@ public class AuthManager : MonoBehaviour
 
     public void SendFriendRequest(string friendUserID)
     {
-
-        // Verifica si el usuario ya ha enviado una solicitud de amistad a esta persona
-        DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
-        DatabaseReference friendRequestsRef = currentUserRef.Child("friendRequests");
-
-        // Crea una nueva solicitud de amistad
-        FriendRequest request = new FriendRequest
-        {
-            senderUserId = user.UserId,
-            recipientUserId = friendUserID,
-            accepted = false
-        };
-
-        // Verifica si ya existe una solicitud pendiente
-        friendRequestsRef.GetValueAsync().ContinueWithOnMainThread(task =>
+        // Verifica si el usuario ya es amigo del destinatario
+        DatabaseReference currentUserFriendsRef = dbReference.Child("users").Child(user.UserId).Child("friends");
+        currentUserFriendsRef.GetValueAsync().ContinueWith(task =>
         {
             if (task.Result.Exists)
             {
                 if (!task.Result.HasChild(friendUserID))
                 {
-                    // Si no ha enviado una solicitud previamente, envía la solicitud
-                    friendRequestsRef.Child(friendUserID).SetValueAsync(request);
+                    // El usuario no es amigo del destinatario, por lo que puede enviar una solicitud
+                    // Crea una nueva solicitud de amistad
+                    FriendRequest request = new FriendRequest
+                    {
+                        senderUserId = user.UserId,
+                        recipientUserId = friendUserID,
+                        accepted = false
+                    };
+
+                    // Agrega la solicitud a la lista de solicitudes de amistad del destinatario
+                    DatabaseReference recipientUserRef = dbReference.Child("users").Child(friendUserID).Child("friendRequests");
+                    recipientUserRef.Child(user.UserId).SetRawJsonValueAsync(JsonUtility.ToJson(request));
                     Debug.Log("Solicitud de amistad enviada.");
                 }
                 else
                 {
-                    Debug.LogWarning("Ya has enviado una solicitud de amistad a este usuario.");
+                    Debug.LogWarning("Ya eres amigo de este usuario.");
                 }
-            }
-            else
-            {
-                // Si no hay solicitud previa, crea la lista y envía la solicitud
-                friendRequestsRef.Child(friendUserID).SetValueAsync(request);
-                Debug.Log("Solicitud de amistad enviada.");
             }
         });
     }
@@ -199,17 +191,84 @@ public class AuthManager : MonoBehaviour
         DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
         DatabaseReference requesterUserRef = dbReference.Child("users").Child(requesterUserID);
 
-        // Acepta la solicitud de amistad
-        currentUserRef.Child("friendRequests").Child(requesterUserID).RemoveValueAsync();
-        currentUserRef.Child("friends").Child(requesterUserID).SetValueAsync(true);
-        requesterUserRef.Child("friends").Child(user.UserId).SetValueAsync(true);
+        // Verifica si la solicitud de amistad existe
+        DatabaseReference friendRequestsRef = currentUserRef.Child("friendRequests").Child(requesterUserID);
+        friendRequestsRef.GetValueAsync().ContinueWith(task =>
+        {
+            if (task.Result.Exists)
+            {
+                // La solicitud de amistad existe, entonces puedes eliminarla y agregar al usuario como amigo
+                currentUserRef.Child("friendRequests").Child(requesterUserID).RemoveValueAsync();
+                currentUserRef.Child("friends").Child(requesterUserID).SetValueAsync(true);
+                requesterUserRef.Child("friends").Child(user.UserId).SetValueAsync(true);
 
-        Debug.Log("Solicitud de amistad aceptada.");
+                Debug.Log("Solicitud de amistad aceptada.");
+            }
+            else
+            {
+                Debug.LogWarning("La solicitud de amistad no existe en la base de datos.");
+            }
+        });
+    }
+    public void ShowFriendRequests()
+    {
+        // Obtén la lista de solicitudes de amistad del usuario actual
+        DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId).Child("friendRequests");
+        currentUserRef.GetValueAsync().ContinueWith(task =>
+        {
+            if (task.Result.Exists)
+            {
+                DataSnapshot snapshot = task.Result;
+                List<FriendRequest> friendRequests = new List<FriendRequest>();
+                foreach (var childSnapshot in snapshot.Children)
+                {
+                    FriendRequest request = JsonUtility.FromJson<FriendRequest>(childSnapshot.GetRawJsonValue());
+                    friendRequests.Add(request);
+                }
+
+                // Aquí debes mostrar las solicitudes de amistad en tu UI, por ejemplo, en una lista.
+                // Puedes utilizar Unity's UI elements para mostrar la lista de solicitudes.
+                foreach (var request in friendRequests)
+                {
+                    // Agregar lógica para mostrar la solicitud en la interfaz de usuario.
+                    // Por ejemplo, puedes crear elementos de lista en Unity y configurar su contenido.
+                    Debug.Log("Solicitud de amistad de: " + request.senderUserId);
+                }
+            }
+        });
     }
     public void UpdateScore()
     {
         StartCoroutine(Score(int.Parse(highScore.text)));
-    }  
+    }
+
+    public void ShowFriends()
+    {
+        // Obtén la lista de amigos del usuario actual
+        DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId).Child("friends");
+        currentUserRef.GetValueAsync().ContinueWith(task =>
+        {
+            if (task.Result.Exists)
+            {
+                DataSnapshot snapshot = task.Result;
+                List<string> friendIds = new List<string>();
+                foreach (var childSnapshot in snapshot.Children)
+                {
+                    friendIds.Add(childSnapshot.Key);
+                }
+
+                // Aquí debes mostrar la lista de amigos en tu UI.
+                // Puedes utilizar Unity's UI elements para mostrar la lista de amigos.
+                foreach (var friendId in friendIds)
+                {
+                    // Agregar lógica para mostrar la lista de amigos en la interfaz de usuario.
+                    // Por ejemplo, puedes crear elementos de lista en Unity y configurar su contenido.
+                    Debug.Log("Amigo: " + friendId);
+                }
+            }
+        });
+    }
+
 
     IEnumerator Login(string email, string password)
     {
@@ -453,8 +512,10 @@ public class SystemUsers
 {
     public string userId;
     public string userName;
-    public List<string> friends; // Lista de amigos del usuario
+    public List<string> friends = new List<string>(); 
+    public List<FriendRequest> friendRequests = new List<FriendRequest>(); 
 }
+
 
 [System.Serializable]
 public class FriendRequest
