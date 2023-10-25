@@ -940,7 +940,7 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator MatchMakingCoroutine()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1f);
 
         DBUser selfUser = null;
         var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
