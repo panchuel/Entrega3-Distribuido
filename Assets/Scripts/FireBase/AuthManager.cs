@@ -50,6 +50,9 @@ public class AuthManager : MonoBehaviour
     [SerializeField] LoseManager highScoreIntern;
 
     public static AuthManager instance;
+    private bool isMatchmaking = false;
+    private string matchmakingUserID = "";
+
 
     public void Update()
     {
@@ -291,6 +294,61 @@ public class AuthManager : MonoBehaviour
         });
     }
 
+    public void JoinMatchmaking()
+    {
+        isMatchmaking = true;
+        matchmakingUserID = user.UserId;
+        Debug.Log("Buscando partida..."); // Agrega esta línea
+        StartCoroutine(Matchmaking());
+
+
+    }
+
+    IEnumerator Matchmaking()
+    {
+        DatabaseReference matchmakingRef = dbReference.Child("matchmaking");
+        MatchmakingRequest request = new MatchmakingRequest
+        {
+            userID = matchmakingUserID,
+            inMatchmaking = isMatchmaking
+        };
+        string jsonRequest = JsonUtility.ToJson(request);
+        matchmakingRef.Child(matchmakingUserID).SetRawJsonValueAsync(jsonRequest);
+
+        // Espera 3 segundos antes de detener la búsqueda de la partida
+        yield return new WaitForSeconds(5f);
+
+        // Detiene la búsqueda
+        isMatchmaking = false;
+        Debug.Log("Dejó de buscar partida.");
+
+        // Wait for a match to be found
+        while (isMatchmaking)
+        {
+            yield return new WaitForSeconds(1);
+            // Check if a match has been found, you can implement logic to find a match based on your requirements.
+            // For example, check if there is another player in matchmaking.
+            DatabaseReference otherMatchmakingRef = dbReference.Child("matchmaking");
+            otherMatchmakingRef.GetValueAsync().ContinueWith(task =>
+            {
+                if (task.Result.Exists)
+                {
+                    foreach (var childSnapshot in task.Result.Children)
+                    {
+                        if (childSnapshot.Key != matchmakingUserID && childSnapshot.Child("inMatchmaking").Value.ToString() == "true")
+                        {
+                            // Match found, start the game or perform additional setup
+                            isMatchmaking = false;
+                            Debug.Log("Match found with player: " + childSnapshot.Key);
+
+                            // You can perform additional game setup here and inform both players that the match has been found.
+                            // For example, by setting up a game session and updating the UI.
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     IEnumerator Login(string email, string password)
     {
@@ -868,4 +926,11 @@ public class DBUser
     public string username;
     public int score;
     public List<Friend> friends;
+}
+
+[System.Serializable]
+public class MatchmakingRequest
+{
+    public string userID;
+    public bool inMatchmaking;
 }
