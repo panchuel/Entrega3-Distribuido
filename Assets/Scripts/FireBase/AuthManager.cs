@@ -670,6 +670,7 @@ public class AuthManager : MonoBehaviour
         while (true) // A bit dangerous, should work for now - Gotensfer
         {
             StartCoroutine(Lobby());
+            StartCoroutine(FriendsRoom());
             yield return new WaitForSeconds(5);
         }
     }
@@ -781,6 +782,34 @@ public class AuthManager : MonoBehaviour
                 }
             }
         }
+
+        // Encontrar al otro user para actualizarlo
+        var DBTaskOther = dbReference.Child("users").OrderByChild("score").GetValueAsync();
+        DBUser otherUser = null;
+        yield return new WaitUntil(predicate: () => DBTaskOther.IsCompleted);
+
+        if (DBTaskOther.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTaskOther.Exception}");
+        else
+        {
+            DataSnapshot snapshotUsers = DBTask.Result;
+
+            foreach (DataSnapshot childSnapshot in snapshotUsers.Children.Reverse<DataSnapshot>())
+            {
+                if (string.Equals(childSnapshot.Key, user.UserId))
+                {
+                    string jsonDataUser = childSnapshot.GetRawJsonValue();
+                    otherUser = JsonUtility.FromJson<DBUser>(jsonDataUser);
+
+                    Friend newFriend = new Friend();
+                    newFriend.uid = user.UserId;
+
+                    otherUser.friends.Add(newFriend);
+
+                    break;
+                }
+            }
+        }
+
 
         string jsonUpdate = JsonUtility.ToJson(selfUser);
         dbReference.Child("users").Child(user.UserId).SetRawJsonValueAsync(jsonUpdate);
