@@ -90,8 +90,7 @@ public class AuthManager : MonoBehaviour
     {
         print($"Configurando autorización de Firebase");
         auth = FirebaseAuth.DefaultInstance;
-        dbReference = FirebaseDatabase.DefaultInstance.RootReference;
-        SubscribeToFriendRequest();
+        dbReference = FirebaseDatabase.DefaultInstance.RootReference;        
     }
 
    
@@ -626,11 +625,13 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator CheckForLobbyUpdatedCoroutine()
     {
+        yield return new WaitForSeconds(5);
+        SubscribeToFriendRequest();
+
         while (true) // A bit dangerous, should work for now - Gotensfer
         {
-            yield return new WaitForSeconds(5);
-
             StartCoroutine(Lobby());
+            yield return new WaitForSeconds(5);
         }
     }
 
@@ -640,8 +641,9 @@ public class AuthManager : MonoBehaviour
     void SubscribeToFriendRequest()
     {
         // Get a reference to the Firebase database
-        friendRequestRef = dbReference.Database.GetReference("friend_requests");
-        print("friendRequestRef null ? " + friendRequestRef == null);
+        friendRequestRef = dbReference.Database.GetReference("friend_request");
+        print($"friendRequestRef null ? {friendRequestRef == null}");
+        print("OE Y MI PRINT???");
 
         // Add a listener to the friend requests node
         friendRequestRef.ChildAdded += HandleIncomingFriendRequest;
@@ -649,6 +651,7 @@ public class AuthManager : MonoBehaviour
 
     void HandleIncomingFriendRequest(object sender, ChildChangedEventArgs args)
     {
+        print("--- - HandleIncomingFriendRequest - ---");
         StartCoroutine(HandleFriendRequestAdded(sender, args));
     }
 
@@ -670,7 +673,7 @@ public class AuthManager : MonoBehaviour
         FriendRequest friendRequest = JsonUtility.FromJson<FriendRequest>(jsonData);
 
         // You can retrieve information from the friend request here
-        string senderUid = friendRequestSnapshot.Child("senderUid").Value.ToString(); // Replace with the actual field names in your database
+        string senderUid = friendRequest.senderUserId; // Replace with the actual field names in your database
 
         // Encontrar user del request
         DBUser requestUser = null;
