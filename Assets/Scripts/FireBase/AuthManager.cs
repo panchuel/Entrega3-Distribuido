@@ -791,11 +791,11 @@ public class AuthManager : MonoBehaviour
         if (DBTaskOther.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTaskOther.Exception}");
         else
         {
-            DataSnapshot snapshotUsers = DBTask.Result;
+            DataSnapshot snapshotUsers = DBTaskOther.Result;
 
             foreach (DataSnapshot childSnapshot in snapshotUsers.Children.Reverse<DataSnapshot>())
             {
-                if (string.Equals(childSnapshot.Key, user.UserId))
+                if (string.Equals(childSnapshot.Key, senderUid))
                 {
                     string jsonDataUser = childSnapshot.GetRawJsonValue();
                     otherUser = JsonUtility.FromJson<DBUser>(jsonDataUser);
