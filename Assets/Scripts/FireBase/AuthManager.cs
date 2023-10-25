@@ -326,8 +326,11 @@ public class AuthManager : MonoBehaviour
                     {
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("Friends").SetValueAsync(emptyFriendList);
+
+                        // Crear una lista vacía de amigos y agregarla al usuario
+                        
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetRawJsonValueAsync(JsonUtility.ToJson(emptyFriendList));
+
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
                     }
@@ -361,6 +364,9 @@ public class AuthManager : MonoBehaviour
             highScore.text = snapshot.Child("score").Value.ToString();
             highScoreIntern.highScore = int.Parse(highScore.text);
 
+            string friendsJson = snapshot.Child("friends").GetRawJsonValue();
+            List<string> friendsList = JsonUtility.FromJson<List<string>>(friendsJson);
+
             // Verificar las solicitudes de amistad pendientes
             if (snapshot.Child("friendRequests").Exists)
             {
@@ -369,8 +375,14 @@ public class AuthManager : MonoBehaviour
                     string senderUserId = requestSnapshot.Key;
                     bool accepted = (bool)requestSnapshot.Value;
 
+                    foreach (string friendUserId in friendsList)
+                    {
+                        Debug.Log("Amigo: " + friendUserId);
+                    }
+
                     if (!accepted)
                     {
+                        
                         Debug.Log("Solicitud de amistad pendiente de: " + senderUserId);
                     }
                 }
@@ -440,7 +452,8 @@ public class AuthManager : MonoBehaviour
 public class SystemUsers
 {
     public string userId;
-    public string userName;   
+    public string userName;
+    public List<string> friends; // Lista de amigos del usuario
 }
 
 [System.Serializable]
