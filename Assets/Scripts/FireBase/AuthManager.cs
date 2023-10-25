@@ -51,14 +51,8 @@ public class AuthManager : MonoBehaviour
 
     public static AuthManager instance;
 
-    public bool isMatchmaking = false;
-    public string matchmakingUserID;
-
-    public string userID;
-    
-
-
-
+    private bool isMatchmaking = false;
+    private string matchmakingUserID = "";
 
 
     private void Awake()
@@ -238,75 +232,66 @@ public class AuthManager : MonoBehaviour
             }
         });
     }
-    public void StartMatchmaking()
+    public void JoinMatchmaking()
     {
-        if (isMatchmaking)
-        {
-            Debug.LogWarning("Ya estás en cola de emparejamiento.");
-            return;
-        }
-
         isMatchmaking = true;
-        Debug.Log("Buscando partida...");
-
-        // Coloca al usuario en la cola de emparejamiento
+        matchmakingUserID = user.UserId;
+        Debug.Log("Buscando partida..."); // Agrega esta línea
+        StartCoroutine(Matchmaking());
+    }
+    IEnumerator Matchmaking()
+    {
+        DatabaseReference matchmakingRef = dbReference.Child("matchmaking");
         MatchmakingRequest request = new MatchmakingRequest
         {
-            userID = userID,
-            inMatchmaking = true
+            userID = matchmakingUserID,
+            inMatchmaking = isMatchmaking
         };
         string jsonRequest = JsonUtility.ToJson(request);
+        matchmakingRef.Child(matchmakingUserID).SetRawJsonValueAsync(jsonRequest);
 
-        dbReference.Child("matchmaking").Child(userID).SetRawJsonValueAsync(jsonRequest);
-
-        StartCoroutine(FindMatch());
-    }
-
-    IEnumerator FindMatch()
-    {
-        // Espera un tiempo antes de detener la búsqueda (simulado)
+        // Espera 3 segundos antes de detener la búsqueda de la partida
         yield return new WaitForSeconds(5f);
 
-        // Detén la búsqueda
+        // Detiene la búsqueda
         isMatchmaking = false;
         Debug.Log("Dejó de buscar partida.");
 
-        // Consulta la base de datos para encontrar un oponente
-        DatabaseReference matchmakingRef = dbReference.Child("matchmaking");
-        matchmakingRef.GetValueAsync().ContinueWith(task =>
+        // Wait for a match to be found
+        while (isMatchmaking)
         {
-            if (task.Result.Exists)
+            yield return new WaitForSeconds(1);
+            // Check if a match has been found
+            DatabaseReference otherMatchmakingRef = dbReference.Child("matchmaking");
+            otherMatchmakingRef.GetValueAsync().ContinueWith(task =>
             {
-                DataSnapshot snapshot = task.Result;
-
-                // Lista de jugadores en cola de emparejamiento
-                List<string> matchmakingPlayers = new List<string>();
-
-                foreach (var childSnapshot in snapshot.Children)
+                if (task.Result.Exists)
                 {
-                    if (childSnapshot.Key != userID && childSnapshot.Child("inMatchmaking").Value.ToString() == "true")
+                    // Lista de jugadores en emparejamiento
+                    List<string> matchmakingPlayers = new List<string>();
+
+                    foreach (var childSnapshot in task.Result.Children)
                     {
-                        matchmakingPlayers.Add(childSnapshot.Key);
+                        if (childSnapshot.Key != matchmakingUserID && childSnapshot.Child("inMatchmaking").Value.ToString() == "true")
+                        {
+                            matchmakingPlayers.Add(childSnapshot.Key);
+                        }
+                    }
+
+                    // Si hay otros jugadores en emparejamiento, selecciona uno aleatoriamente
+                    if (matchmakingPlayers.Count > 0)
+                    {
+                        string opponentUserID = matchmakingPlayers[Random.Range(0, matchmakingPlayers.Count)];
+                        
+
+                        // Finaliza el proceso de emparejamiento
+                        isMatchmaking = false;
+                        Debug.Log("Match found with player: " + opponentUserID);
                     }
                 }
-
-                if (matchmakingPlayers.Count > 0)
-                {
-                    // Se encontró un oponente
-                    string opponentUserID = matchmakingPlayers[0];
-                    Debug.Log("Partida encontrada con el jugador: " + opponentUserID);
-
-                    // Realiza acciones adicionales, como notificar a los jugadores y configurar la sesión de juego
-                }
-                else
-                {
-                    Debug.Log("No se encontraron oponentes en este momento.");
-                }
-            }
-        });
+            });
+        }
     }
-
-
     IEnumerator Login(string email, string password)
     {
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(email, password);
@@ -823,7 +808,7 @@ public class AuthManager : MonoBehaviour
         dbReference.Child("friend_request").Child(requestKey).SetRawJsonValueAsync(jsonUpdate);
         print("Removed friend request");
     }
-  // AAAAAAAAAAAAA pal online
+
     IEnumerator SetSelfOnlineStatusCoroutine(bool status)
     {
         var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
