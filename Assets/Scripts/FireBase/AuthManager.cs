@@ -81,6 +81,8 @@ public class AuthManager : MonoBehaviour
                 Debug.LogError($"No se pueden resolver todas las dependencias de Firebase: {dependencyStatus}");
             }
         });
+
+
     }
 
     void InitializeFirebase()
@@ -152,11 +154,20 @@ public class AuthManager : MonoBehaviour
 
     public void SendFriendRequest(string friendUserID)
     {
-        
-        // Obtener la referencia al usuario actual en la base de datos
+
+        // Verifica si el usuario ya ha enviado una solicitud de amistad a esta persona
         DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
-        // Verificar si el usuario actual ya ha enviado una solicitud de amistad a esta persona
         DatabaseReference friendRequestsRef = currentUserRef.Child("friendRequests");
+
+        // Crea una nueva solicitud de amistad
+        FriendRequest request = new FriendRequest
+        {
+            senderUserId = user.UserId,
+            recipientUserId = friendUserID,
+            accepted = false
+        };
+
+        // Verifica si ya existe una solicitud pendiente
         friendRequestsRef.GetValueAsync().ContinueWithOnMainThread(task =>
         {
             if (task.Result.Exists)
@@ -164,7 +175,7 @@ public class AuthManager : MonoBehaviour
                 if (!task.Result.HasChild(friendUserID))
                 {
                     // Si no ha enviado una solicitud previamente, envía la solicitud
-                    friendRequestsRef.Child(friendUserID).SetValueAsync(true);
+                    friendRequestsRef.Child(friendUserID).SetValueAsync(request);
                     Debug.Log("Solicitud de amistad enviada.");
                 }
                 else
@@ -175,23 +186,22 @@ public class AuthManager : MonoBehaviour
             else
             {
                 // Si no hay solicitud previa, crea la lista y envía la solicitud
-                friendRequestsRef.SetValueAsync(friendUserID, true);
+                friendRequestsRef.Child(friendUserID).SetValueAsync(request);
                 Debug.Log("Solicitud de amistad enviada.");
             }
         });
     }
 
+
     public void AcceptFriendRequest(string requesterUserID)
     {
-        // Obtener la referencia al usuario actual en la base de datos
+        // Obtén la referencia al usuario actual en la base de datos
         DatabaseReference currentUserRef = dbReference.Child("users").Child(user.UserId);
-        // Obtener la referencia al usuario que envió la solicitud
         DatabaseReference requesterUserRef = dbReference.Child("users").Child(requesterUserID);
-        // Agregar el requesterUserID a la lista de amigos del usuario actual
-        currentUserRef.Child("friends").Child(requesterUserID).SetValueAsync(true);
-        // Eliminar la solicitud de amistad del usuario actual
+
+        // Acepta la solicitud de amistad
         currentUserRef.Child("friendRequests").Child(requesterUserID).RemoveValueAsync();
-        // Agregar al usuario actual a la lista de amigos del solicitante
+        currentUserRef.Child("friends").Child(requesterUserID).SetValueAsync(true);
         requesterUserRef.Child("friends").Child(user.UserId).SetValueAsync(true);
 
         Debug.Log("Solicitud de amistad aceptada.");
@@ -318,7 +328,6 @@ public class AuthManager : MonoBehaviour
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("Friends").SetValueAsync(emptyFriendList);
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("Notificaciones").SetValueAsync(emptyFriendList);
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
                     }
@@ -339,11 +348,11 @@ public class AuthManager : MonoBehaviour
     IEnumerator LoadData()
     {
         var DBTask = dbReference.Child("users").Child(user.UserId).GetValueAsync();
-        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+        yield return new WaitUntil(() => DBTask.IsCompleted);
 
-        if(DBTask.Result.Value == null)
+        if (DBTask.Exception != null)
         {
-            highScore.text = "0";
+            Debug.LogWarning("Fallo al cargar datos del usuario: " + DBTask.Exception);
         }
         else
         {
@@ -351,6 +360,21 @@ public class AuthManager : MonoBehaviour
 
             highScore.text = snapshot.Child("score").Value.ToString();
             highScoreIntern.highScore = int.Parse(highScore.text);
+
+            // Verificar las solicitudes de amistad pendientes
+            if (snapshot.Child("friendRequests").Exists)
+            {
+                foreach (var requestSnapshot in snapshot.Child("friendRequests").Children)
+                {
+                    string senderUserId = requestSnapshot.Key;
+                    bool accepted = (bool)requestSnapshot.Value;
+
+                    if (!accepted)
+                    {
+                        Debug.Log("Solicitud de amistad pendiente de: " + senderUserId);
+                    }
+                }
+            }
         }
     }
 
@@ -408,49 +432,7 @@ public class AuthManager : MonoBehaviour
             }
         }
     }
-    IEnumerator Notific()
-    {
-        var DBTask = dbReference.Child("users").OrderByChild("username").GetValueAsync();
-
-        yield return new WaitUntil(() => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
-        }
-        else
-        {
-            DataSnapshot snapshot = DBTask.Result;
-
-            // Destruye todos los elementos de la tabla
-            foreach (Transform child in scoreboardContent.transform)
-            {
-                Destroy(child.gameObject);
-            }
-
-            foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
-            {
-                string userId = childSnapshot.Key;
-                string userName = childSnapshot.Child("username").Value.ToString();
-                bool isFriend = (bool)childSnapshot.Child("IsMyFriend").Value;
-
-                // Obtén la lista de notificaciones del usuario actual
-                List<string> notifications = new List<string>();
-
-                if (childSnapshot.Child("Notificaciones").Exists)
-                {
-                    foreach (var notificationSnapshot in childSnapshot.Child("Notificaciones").Children)
-                    {
-                        notifications.Add(notificationSnapshot.Value.ToString());
-                    }
-                }
-
-                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
-
-                //UIManager.instance.AddUserToLobby(userName, userId, isFriend, notifications);
-            }
-        }
-    }
+    
 }
 
 
@@ -459,4 +441,12 @@ public class SystemUsers
 {
     public string userId;
     public string userName;   
+}
+
+[System.Serializable]
+public class FriendRequest
+{
+    public string senderUserId;
+    public string recipientUserId;
+    public bool accepted;
 }
