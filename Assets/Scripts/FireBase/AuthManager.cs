@@ -157,7 +157,6 @@ public class AuthManager : MonoBehaviour
     public void SendFriendRequest(string receiverUid)
     {
         /*
-
         // Verifica si el usuario ya es amigo del destinatario
         DatabaseReference currentUserFriendsRef = dbReference.Child("users").Child(user.UserId).Child("friends");
         currentUserFriendsRef.GetValueAsync().ContinueWith(task =>
@@ -202,7 +201,9 @@ public class AuthManager : MonoBehaviour
             accepted = false
         };
 
-        friendRequestRef.Child(requestKey).SetValueAsync(newFriendRequest);
+        string jsonData = JsonUtility.ToJson(newFriendRequest);
+        print(jsonData);
+        friendRequestRef.Child(requestKey).SetRawJsonValueAsync(jsonData);
 
         /*
         // Define the friend request data
@@ -654,6 +655,7 @@ public class AuthManager : MonoBehaviour
     // This method will be called when a new friend request is added
     IEnumerator HandleFriendRequestAdded(object sender, ChildChangedEventArgs args)
     {
+        Debug.Log("<color=red>RECEIVED FRIEND REQUEST</color>");
         string usernameSender = "";
 
         if (args.DatabaseError != null)
@@ -693,8 +695,9 @@ public class AuthManager : MonoBehaviour
         }
 
         // Check if this request is for the current user (User B)
-        if (senderUid == user.UserId && !friendRequest.accepted)
+        if (string.Equals(friendRequest.recipientUserId, user.UserId) && !friendRequest.accepted)
         {
+            Debug.Log("<color=green>RECEIVED REQUEST FOR MYSELF</color>");
             // Display a notification or trigger the UI popup to inform User B about the friend request
             UIManager.instance.PopUpFriendRequest(usernameSender, senderUid);
         }
@@ -717,9 +720,9 @@ public class SystemUsers
 [System.Serializable]
 public class FriendRequest
 {
-    public string senderUserId { get; set; }
-    public string recipientUserId { get; set; }
-    public bool accepted { get; set; }
+    public string senderUserId;
+    public string recipientUserId;
+    public bool accepted;
 }
 
 [System.Serializable]
