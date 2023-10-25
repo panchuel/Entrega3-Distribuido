@@ -85,8 +85,11 @@ public class AuthManager : MonoBehaviour
                 Debug.LogError($"No se pueden resolver todas las dependencias de Firebase: {dependencyStatus}");
             }
         });
+    }
 
-
+    private void OnDisable()
+    {
+        SetSelfOnlineStatus(false);
     }
 
     void InitializeFirebase()
@@ -395,9 +398,19 @@ public class AuthManager : MonoBehaviour
 
             yield return new WaitForSeconds(1);
 
+            SetSelfOnlineStatus(true);
+
             usernameField.text = user.DisplayName;
 
             UIManager.instance.SetHomeScreen();
+
+
+
+            // ELDRITCH ABERRATIOn x2
+            // Actualizar user pa ponerlo online
+
+
+            // end
 
             //gameUI.SetActive(true);
             //menuUI.SetActive(true);
@@ -466,6 +479,7 @@ public class AuthManager : MonoBehaviour
                         DBUser newUser = new DBUser();
                         newUser.username = username;
                         newUser.score = 0;
+                        newUser.isOnline = false;
 
                         // Añadir placeholder de amigo
                         newUser.friends = new List<Friend>();
@@ -588,39 +602,6 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator Lobby()
     {
-        /*
-        DBUser selfUser = null;
-
-        var DBTaskGetSelf = dbReference.Child("users").Child(user.UserId).GetValueAsync();
-        yield return new WaitUntil(predicate: () => DBTaskGetSelf.IsCompleted);
-
-        if (DBTaskGetSelf.Exception != null) Debug.LogWarning($"Fallo en registrar tarea de obtenerse a si mismo {DBTaskGetSelf.Exception}");
-        else
-        {
-            DataSnapshot snapshot = DBTaskGetSelf.Result;
-
-            if (snapshot.Exists)
-            {
-                // Parse the snapshot into a DBUser object
-                string jsonData = snapshot.GetRawJsonValue();
-                selfUser = JsonUtility.FromJson<DBUser>(jsonData);
-
-                // Now selfUser contains the data from the database
-                Debug.Log($"Retrieved self user data: {selfUser.username}, {selfUser.score}");
-
-                // Check if the "friends" field is null, and if so, initialize it
-                if (selfUser.friends == null)
-                {
-                    selfUser.friends = new List<Friend>();
-                }
-            }
-            else
-            {
-                Debug.LogWarning("No data found for the user");
-            }
-        }
-        */
-
         yield return new WaitForSeconds(3f);
 
         DBUser selfUser = null;
@@ -652,6 +633,10 @@ public class AuthManager : MonoBehaviour
                 string userId = childSnapshot.Key;
                 string userName = childSnapshot.Child("username").Value.ToString();
 
+                
+                string jsonData = childSnapshot.GetRawJsonValue();
+                DBUser otherUser = JsonUtility.FromJson<DBUser>(jsonData);
+
                 bool isFriend = false;
                 for (int i = 0; i < selfUser.friends.Count; i++)
                 {
@@ -662,8 +647,10 @@ public class AuthManager : MonoBehaviour
                     }
                 }
 
-                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
-                UIManager.instance.AddUserToLobby(userName, userId, isFriend);
+                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent); // Wtf is this shit?
+                GameObject lobbyUser = UIManager.instance.AddUserToLobby(userName, userId, isFriend);
+                lobbyUser.GetComponent<LobbyUser>().SetOnlineStatus(otherUser.isOnline);
+
             }
         }
     }
@@ -713,8 +700,12 @@ public class AuthManager : MonoBehaviour
 
                 if (isFriend)
                 {
+                    string jsonData = childSnapshot.GetRawJsonValue();
+                    DBUser otherUser = JsonUtility.FromJson<DBUser>(jsonData);
+
                     GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
-                    UIManager.instance.AddUserToFriends(userName, userId);
+                    GameObject lobbyUser = UIManager.instance.AddUserToFriends(userName, userId);
+                    lobbyUser.GetComponent<LobbyUser>().SetOnlineStatus(otherUser.isOnline);
                 }            
             }
         }
@@ -893,6 +884,49 @@ public class AuthManager : MonoBehaviour
         dbReference.Child("friend_request").Child(requestKey).SetRawJsonValueAsync(jsonUpdate);
         print("Removed friend request");
     }
+
+
+
+
+
+
+
+
+
+    // AAAAAAAAAAAAA pal online
+    IEnumerator SetSelfOnlineStatusCoroutine(bool status)
+    {
+        var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
+        DBUser selfUser = null;
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
+        else
+        {
+            DataSnapshot snapshotUsers = DBTask.Result;
+
+            foreach (DataSnapshot childSnapshot in snapshotUsers.Children.Reverse<DataSnapshot>())
+            {
+                if (string.Equals(childSnapshot.Key, user.UserId))
+                {
+                    string jsonDataUser = childSnapshot.GetRawJsonValue();
+                    selfUser = JsonUtility.FromJson<DBUser>(jsonDataUser);
+                    selfUser.isOnline = status;
+
+                    break;
+                }
+            }
+        }
+
+        string jsonUpdateSelf = JsonUtility.ToJson(selfUser);
+        dbReference.Child("users").Child(user.UserId).SetRawJsonValueAsync(jsonUpdateSelf);
+    }
+
+    private void SetSelfOnlineStatus(bool status)
+    {
+        StartCoroutine(SetSelfOnlineStatusCoroutine(status));
+    }
+
 }
 
 
@@ -926,6 +960,7 @@ public class DBUser
     public string username;
     public int score;
     public List<Friend> friends;
+    public bool isOnline;
 }
 
 [System.Serializable]

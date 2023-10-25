@@ -8,6 +8,7 @@ public class LobbyUser : MonoBehaviour
 {
     [SerializeField] Button addFriendButton;
     [SerializeField] TextMeshProUGUI userNameDisplay;
+    [SerializeField] Image onlineStatus;
 
     string userID;
 
@@ -29,6 +30,18 @@ public class LobbyUser : MonoBehaviour
         if (isFriend)
         {
             addFriendButton.gameObject.SetActive(false);
+        }
+    }
+
+    public void SetOnlineStatus(bool isOnline)
+    {
+        if(isOnline)
+        {
+            onlineStatus.color = Color.green;           
+        }
+        else
+        {
+            onlineStatus.color = Color.red;
         }
     }
 }

@@ -241,22 +241,26 @@ public class UIManager : MonoBehaviour
         ClearFriendUsers();
     }
 
-    public void AddUserToLobby(string userName, string userID, bool isFriend)
+    public GameObject AddUserToLobby(string userName, string userID, bool isFriend)
     {
         GameObject newLobbyUser = Instantiate(lobbyUserPrefab, containerLobby);
         newLobbyUser.GetComponent<LobbyUser>().Set(userName, userID);
         newLobbyUser.GetComponent<LobbyUser>().SetStatus(isFriend);
 
         lobbyUsers.Add(newLobbyUser);
+
+        return newLobbyUser;
     }
 
-    public void AddUserToFriends(string userName, string userID)
+    public GameObject AddUserToFriends(string userName, string userID)
     {
         GameObject newLobbyUser = Instantiate(lobbyUserPrefab, containerFriends);
         newLobbyUser.GetComponent<LobbyUser>().Set(userName, userID);
         newLobbyUser.GetComponent<LobbyUser>().SetStatus(true);
 
         friendUsers.Add(newLobbyUser);
+
+        return newLobbyUser;
     }
     #endregion
 }
