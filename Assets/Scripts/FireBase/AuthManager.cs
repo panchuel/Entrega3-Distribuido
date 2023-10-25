@@ -7,6 +7,7 @@ using Firebase.Database;
 using TMPro;
 using Firebase.Extensions;
 using System.Linq;
+using Google.MiniJSON;
 
 public class AuthManager : MonoBehaviour
 {
@@ -90,6 +91,7 @@ public class AuthManager : MonoBehaviour
         print($"Configurando autorización de Firebase");
         auth = FirebaseAuth.DefaultInstance;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
+        SubscribeToFriendRequest();
     }
 
    
@@ -152,8 +154,10 @@ public class AuthManager : MonoBehaviour
         });
     }
 
-    public void SendFriendRequest(string friendUserID)
+    public void SendFriendRequest(string receiverUid)
     {
+        /*
+
         // Verifica si el usuario ya es amigo del destinatario
         DatabaseReference currentUserFriendsRef = dbReference.Child("users").Child(user.UserId).Child("friends");
         currentUserFriendsRef.GetValueAsync().ContinueWith(task =>
@@ -182,6 +186,37 @@ public class AuthManager : MonoBehaviour
                 }
             }
         });
+        */
+
+        print($"Called SendFriendRequest to UID {receiverUid}");
+
+        // Create a unique key for the friend request (e.g., using Push)
+        DatabaseReference friendRequestRef = dbReference.Database.GetReference("friend_request");
+        string requestKey = friendRequestRef.Push().Key;
+        string senderUid = user.UserId;
+
+        FriendRequest newFriendRequest = new FriendRequest
+        {
+            senderUserId = senderUid,
+            recipientUserId = receiverUid,
+            accepted = false
+        };
+
+        friendRequestRef.Child(requestKey).SetValueAsync(newFriendRequest);
+
+        /*
+        // Define the friend request data
+        Dictionary<string, object> requestData = new Dictionary<string, object>
+        {
+            { "senderUid", senderUid },
+            { "receiverUid", receiverUid },
+            { "status", "pending" }
+            // You can add more information if needed, such as timestamps
+        };
+
+        // Set the friend request data in the database under the unique key
+        friendRequestRef.Child(requestKey).SetValueAsync(requestData);
+        */
     }
 
 
@@ -311,7 +346,7 @@ public class AuthManager : MonoBehaviour
             warningLoginText.text = "";
 
             StartCoroutine(LoadData());
-            
+            StartCoroutine(CheckForLobbyUpdatedCoroutine());
 
             yield return new WaitForSeconds(1);
 
@@ -365,9 +400,9 @@ public class AuthManager : MonoBehaviour
 
                 if (user != null)
                 {
-                    List<SystemUsers> emptyFriendList = new List<SystemUsers>(); 
-                    List<SystemUsers> emptyNotiList = new List<SystemUsers>();
-
+                    //List<SystemUsers> emptyFriendList = new List<SystemUsers>(); 
+                    //List<SystemUsers> emptyNotiList = new List<SystemUsers>();
+                        
                     UserProfile profile = new UserProfile { DisplayName = username };
 
                     var ProfileTask = user.UpdateUserProfileAsync(profile);
@@ -383,15 +418,38 @@ public class AuthManager : MonoBehaviour
                     }
                     else
                     {
+                        DBUser newUser = new DBUser();
+                        newUser.username = username;
+                        newUser.score = 0;
+
+                        // Añadir placeholder de amigo
+                        newUser.friends = new List<Friend>();
+                        Friend placeholderFriend = new Friend()
+                        {
+                            uid = "-1"
+                        };
+                        newUser.friends.Add(placeholderFriend);
+
+                        string jsonUser = JsonUtility.ToJson(newUser);
+                        print(jsonUser);
+
+                        dbReference.Child("users").Child(user.UserId).SetRawJsonValueAsync(jsonUser);
+
+                        /*
                         var DBTask = dbReference.Child("users").Child(user.UserId).Child("username").SetValueAsync(username);
                         DBTask = dbReference.Child("users").Child(user.UserId).Child("score").SetValueAsync(0.ToString());
 
-                        // Crear una lista vacía de amigos y agregarla al usuario
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("IsMyFriend").SetValueAsync(false);
-                        DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetRawJsonValueAsync(JsonUtility.ToJson(emptyFriendList));
+                        DBTask = dbReference.Child("users").Child(user.UserId).Child("friend_requests").SetRawJsonValueAsync(JsonUtility.ToJson(emptyFriendRequests));
+
+                        // Create an empty friends dictionary
+                        //Dictionary<string, object> emptyFriends = new Dictionary<string, object>();
+                        //DBTask = dbReference.Child("users").Child(user.UserId).Child("friends").SetRawJsonValueAsync(JsonUtility.ToJson(emptyFriends));
 
                         UIManager.instance.SetLoginScreen();
                         warningRegisterText.text = "";
+
+                        print("Setted values 1");
+                        */
                     }
                 }
             }
@@ -409,6 +467,9 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator LoadData()
     {
+        yield return null;
+
+        /*
         var DBTask = dbReference.Child("users").Child(user.UserId).GetValueAsync();
         yield return new WaitUntil(() => DBTask.IsCompleted);
 
@@ -447,6 +508,7 @@ public class AuthManager : MonoBehaviour
                 }
             }
         }
+        */
     }
 
     IEnumerator LoadScoreBoard()
@@ -481,6 +543,42 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator Lobby()
     {
+        /*
+        DBUser selfUser = null;
+
+        var DBTaskGetSelf = dbReference.Child("users").Child(user.UserId).GetValueAsync();
+        yield return new WaitUntil(predicate: () => DBTaskGetSelf.IsCompleted);
+
+        if (DBTaskGetSelf.Exception != null) Debug.LogWarning($"Fallo en registrar tarea de obtenerse a si mismo {DBTaskGetSelf.Exception}");
+        else
+        {
+            DataSnapshot snapshot = DBTaskGetSelf.Result;
+
+            if (snapshot.Exists)
+            {
+                // Parse the snapshot into a DBUser object
+                string jsonData = snapshot.GetRawJsonValue();
+                selfUser = JsonUtility.FromJson<DBUser>(jsonData);
+
+                // Now selfUser contains the data from the database
+                Debug.Log($"Retrieved self user data: {selfUser.username}, {selfUser.score}");
+
+                // Check if the "friends" field is null, and if so, initialize it
+                if (selfUser.friends == null)
+                {
+                    selfUser.friends = new List<Friend>();
+                }
+            }
+            else
+            {
+                Debug.LogWarning("No data found for the user");
+            }
+        }
+        */
+
+        yield return new WaitForSeconds(3f);
+
+        DBUser selfUser = null;
         var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
@@ -490,20 +588,119 @@ public class AuthManager : MonoBehaviour
             DataSnapshot snapshot = DBTask.Result;
 
             //Destruyo todos los elementos de la tabla
-            foreach (Transform child in scoreboardContent.transform) Destroy(child.gameObject);
+            UIManager.instance.ClearAllUsers();
 
             foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
             {
+                if (string.Equals(childSnapshot.Key, user.UserId))
+                {
+                    string jsonData = childSnapshot.GetRawJsonValue();
+                    selfUser = JsonUtility.FromJson<DBUser>(jsonData);
+                    break;
+                }
+            }
+
+            foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
+            {
+                if (string.Equals(childSnapshot.Key, user.UserId)) continue;
+
                 string userId = childSnapshot.Key;
                 string userName = childSnapshot.Child("username").Value.ToString();
-                bool Friends = (bool)childSnapshot.Child("IsMyFriend").Value;
+
+                bool isFriend = false;
+                for (int i = 0; i < selfUser.friends.Count; i++)
+                {
+                    if (string.Equals(childSnapshot.Key, selfUser.friends[i].uid))
+                    {
+                        isFriend = true;
+                        break;
+                    }
+                }
 
                 GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
-                UIManager.instance.AddUserToLobby(userName, userId, Friends);
+                UIManager.instance.AddUserToLobby(userName, userId, isFriend);
             }
         }
     }
-    
+
+    IEnumerator CheckForLobbyUpdatedCoroutine()
+    {
+        while (true) // A bit dangerous, should work for now - Gotensfer
+        {
+            yield return new WaitForSeconds(5);
+
+            StartCoroutine(Lobby());
+        }
+    }
+
+    #region"Friend request handling"
+    DatabaseReference friendRequestRef;
+
+    void SubscribeToFriendRequest()
+    {
+        // Get a reference to the Firebase database
+        friendRequestRef = dbReference.Database.GetReference("friend_requests");
+        print("friendRequestRef null ? " + friendRequestRef == null);
+
+        // Add a listener to the friend requests node
+        friendRequestRef.ChildAdded += HandleIncomingFriendRequest;
+    }
+
+    void HandleIncomingFriendRequest(object sender, ChildChangedEventArgs args)
+    {
+        StartCoroutine(HandleFriendRequestAdded(sender, args));
+    }
+
+    // This method will be called when a new friend request is added
+    IEnumerator HandleFriendRequestAdded(object sender, ChildChangedEventArgs args)
+    {
+        string usernameSender = "";
+
+        if (args.DatabaseError != null)
+        {
+            Debug.LogError(args.DatabaseError.Message);
+            yield break;
+        }
+
+        DataSnapshot friendRequestSnapshot = args.Snapshot;
+
+        string jsonData = friendRequestSnapshot.GetRawJsonValue();
+        FriendRequest friendRequest = JsonUtility.FromJson<FriendRequest>(jsonData);
+
+        // You can retrieve information from the friend request here
+        string senderUid = friendRequestSnapshot.Child("senderUid").Value.ToString(); // Replace with the actual field names in your database
+
+        // Encontrar user del request
+        DBUser requestUser = null;
+        var DBTask = dbReference.Child("users").OrderByChild("score").GetValueAsync();
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null) Debug.LogWarning($"Fallo en registrar la tarea {DBTask.Exception}");
+        else
+        {
+            DataSnapshot snapshotUsers = DBTask.Result;
+
+            foreach (DataSnapshot childSnapshot in snapshotUsers.Children.Reverse<DataSnapshot>())
+            {
+                if (string.Equals(childSnapshot.Key, senderUid))
+                {
+                    string jsonDataUser = childSnapshot.GetRawJsonValue();
+                    requestUser = JsonUtility.FromJson<DBUser>(jsonDataUser);
+                    usernameSender = requestUser.username;
+                    break;
+                }
+            }
+        }
+
+        // Check if this request is for the current user (User B)
+        if (senderUid == user.UserId && !friendRequest.accepted)
+        {
+            // Display a notification or trigger the UI popup to inform User B about the friend request
+            UIManager.instance.PopUpFriendRequest(usernameSender, senderUid);
+        }
+    }
+
+    #endregion
 }
 
 
@@ -520,7 +717,21 @@ public class SystemUsers
 [System.Serializable]
 public class FriendRequest
 {
-    public string senderUserId;
-    public string recipientUserId;
-    public bool accepted;
+    public string senderUserId { get; set; }
+    public string recipientUserId { get; set; }
+    public bool accepted { get; set; }
+}
+
+[System.Serializable]
+public class Friend
+{
+    public string uid;
+}
+
+[System.Serializable]
+public class DBUser
+{
+    public string username;
+    public int score;
+    public List<Friend> friends;
 }
